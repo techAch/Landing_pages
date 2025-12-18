@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="حذاء رياضي مريح بجودة عالية، توصيل سريع والدفع عند الاستلام في جميع مدن المغرب">
+  <title>صفحة بيع الأحذية</title>
+  <style>
+    body {font-family: sans-serif, 'Courier New', Courier, monospace; margin:0; background:#f6f6f6; color:#333;}
+    h1,h2,h3{text-align:center;}
+    /* Styling for the main hero title only */
+    .hero-title{
+      background-color: black;
+      width: 100%;
+      font-style: oblique;
+      color: rgb(211, 239, 0);
+      margin: 0 auto; /* centers inline-block when parent text-align is center */
+      font-size: clamp(20px, 3.6vw, 28px);
+      line-height: 2.05;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      /* center across the full hero (not just the left column) */
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 12px;
+      max-width: calc(100% - 40px);
+    }
+    /* subtitle for the hero header */
+    .hero-subtitle{
+      color: black;
+      font-size: medium;
+      text-align: center;
+    }
+    /* Make section headings match the form border color */
+    .section h2, .order-box h2 { color: #00521e; }
+    .container {max-width:1100px; margin:auto; padding:16px;}
+    .hero {background:#fff70066; padding: 2%;; border-radius:8px; display:grid; grid-template-columns:1fr 1fr; gap:20px; position:relative; padding-top:64px;}
+    .hero img {width:100%; border-radius:8px; background:#ddd; height:auto; max-height:420px; object-fit:cover;padding: 1px; display:block;} 
+
+    .price-box{text-align:center;margin:10px 0;}
+    .old-price{color:#999;text-decoration:line-through;font-size:18px;margin-left:6px;}
+    .new-price{color:#ef1410;font-size:30px;font-weight:bold;}
+
+    .flash-title{color:#ef1410;font-weight:bold;text-align:center;margin-top:10px;}
+    .flash {display:flex; gap:8px; justify-content:center; margin-top:10px;}
+    .flash div{background:#ef1410;color:#fff;padding:10px 12px;border-radius:6px;min-width:70px;font-weight:bold;font-size:larger;text-align:center;box-shadow: 0 8px 20px rgba(0,0,0,0.35);transition: transform .12s, box-shadow .12s;}
+    .flash div:hover{transform:translateY(-4px);box-shadow: 0 18px 30px rgba(0,0,0,0.45);}
+    .flash span{display:block;font-size:12px;margin-top:4px;}
+
+    .buy-now{display:block;margin:14px auto 0 auto;padding:12px 12px;text-align:center;max-width:100%;width:200px;background:#d5210d;color:#ffffff;text-decoration:none;font-weight:bold;border:2px solid #dada13;border-radius:6px;font-size:18px;box-sizing:border-box;}
+
+    .section {background:#fff70066; margin-top:20px; padding:24px; border-radius:8px;}
+    ul {padding-right:20px;}
+
+    .thumbnails{display:flex; gap:8px; margin-top:10px; justify-content:center;}
+    .thumbnails img{width:60px; height:60px; object-fit:cover; border:0.5px solid #ccc; border-radius:4px; cursor:pointer;}
+
+    .options{margin-top:14px;}
+    .colors{display:flex; align-items:center; gap:8px; justify-content:center; margin-bottom:10px;}
+    .color{width:26px; height:26px; border-radius:50%; border:2px solid #ccc; cursor:pointer;}
+    .color.active {
+      border: 3px solid #e53935;
+      box-shadow: 0 0 0 2px #fff inset;
+      transform: scale(1.1);
+    }
+    .colors.input-error {
+      outline: 2px solid #e53935;
+      padding: 6px;
+      border-radius: 8px;
+    }
+    .sizes{text-align:center;}
+    .sizes select{padding:8px; border-radius:4px;}
+
+    .order-box{border:2px dashed #e53935;box-shadow:0 10px 25px rgba(229,57,53,0.25);padding:20px;}
+    .order-form label {display:block; margin-bottom:6px; font-weight:bold;}
+    /* small label shown above color picker */
+    .color-label {display:block; text-align:center; margin-bottom:8px; font-weight:bold; font-size:14px; color:#333;} 
+    .order-form input, .order-form select {width:100%; padding:12px; margin-bottom:14px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;}
+    .order-form button {width:100%; padding:14px; background:#e53935; border:none; color:#fff; font-size:18px; border-radius:4px; cursor:pointer;}
+    .contact-buttons{margin-top:14px; text-align:center;}
+    .contact-buttons a{display:inline-flex;align-items:center;gap:8px;background:#08dc55;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:bold;}
+    .contact-buttons a svg.wh-icon{width:26px;height:26px;flex:0 0 26px;display:block}
+    /* Disable color buttons visually and functionally */
+    .color.disabled{pointer-events:none;opacity:.35}
+    /* Ensure social svg icons scale consistently */
+    .socials a svg{width:16px;height:16px;display:block}
+    
+    footer {background:linear-gradient(135deg,#111,#333); color:#fff; margin-top:30px; padding:20px;}
+    .socials{display:flex; gap:10px; justify-content:center; margin-bottom:14px;}
+    .socials a{width:32px;height:32px;background:#222;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:#fff;transition:transform .12s,opacity .12s}
+    .socials a:hover{transform:translateY(-3px);opacity:0.95}
+    .socials a.facebook{background:#1877F2}
+    .socials a.instagram{background:linear-gradient(45deg,#f58529,#dd2a7b,#8134AF,#515BD4)}
+    .socials a.tiktok{background:#000}
+    .footer-icons {display:grid; grid-template-columns:repeat(4,1fr); gap:12px; text-align:center; margin-top: 2%;}
+    .footer-icons div {background:#222; padding:14px; border-radius:6px; font-size:14px;}
+    
+    .input-error {
+      border: 2px solid #e53935 !important;
+    }
+
+    .error-msg {
+      color: #e53935;
+      font-size: 13px;
+      margin-top: -10px;
+      margin-bottom: 10px;
+      display: none;
+    }
+
+    @media(max-width:768px){
+      .hero{grid-template-columns:1fr; gap:12px;}
+      .hero img{max-height:280px; height:auto}
+      .thumbnails{justify-content:center; flex-wrap:wrap; gap:6px}
+      .thumbnails img{width:48px; height:48px}
+      .buy-now{width:100%; margin:12px 0}
+    }
+
+    @media(max-width:480px){
+      .container{padding:12px}
+      .flash{gap:6px; padding:6px}
+      .flash div{min-width:56px; padding:8px; font-size:14px}
+      .flash div div{font-size:20px}
+      .buy-now{font-size:16px; padding:12px}
+      .order-form input, .order-form select{padding:10px}
+      .order-form button{padding:12px; font-size:16px}
+      .footer-icons{grid-template-columns:repeat(2,1fr); gap:8px}
+      .hero-title{font-size:18px; padding:6px 10px}
+    }</style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <div>
+      <h1 class="hero-title">حذاء رياضي عصري ومريح</h1>
+      <p class="hero-subtitle" style="text-align:center">أفضل اختيار للجودة العالية والراحة</p>
+
+      <div class="price-box">
+        <span class="old-price">499 درهم</span>
+        <span class="new-price">399 درهم</span>
+      </div>
+
+      <div class="flash-title">عرض محدود - كمية محدودة</div>
+      <div class="flash" id="countdown">
+        <div><div id="h">04</div><span>ساعات</span></div>
+        <div><div id="m">00</div><span>دقائق</span></div>
+        <div><div id="s">00</div><span>ثواني</span></div>
+      </div>
+    </div>
+
+    <div>
+      <img id="mainImage" loading="lazy" src="https://images.skechers.com/image;width=1120%2Cformat=auto/232940_WSK_HERO_LG">
+      <div class="thumbnails">
+        <img loading="lazy" src="https://images.skechers.com/image;width=200%2Cformat=auto/232940_WSK_HERO_LG" onclick="swapImage(this)">
+        <img loading="lazy" src="https://images.skechers.com/image;width=200%2Cformat=auto/232940_BRN_INSOLE" onclick="swapImage(this)">
+        <img loading="lazy" src="https://images.skechers.com/image;width=200%2Cformat=auto/232940_BRN_OUTSOLE" onclick="swapImage(this)">
+        <img loading="lazy" src="https://images.skechers.com/image;width=200%2Cformat=auto/232940_BRN_PROFILE_01" onclick="swapImage(this)">
+        <img loading="lazy" src="https://images.skechers.com/image;width=200%2Cformat=auto/232940_BRN_PROFILE_05" onclick="swapImage(this)">
+      </div>
+
+      <a href="#orderForm" class="buy-now">أطلب الآن</a>
+      <div class="options">
+        <label class="color-label">اختر اللون</label>
+        <div class="colors">
+          <button type="button" class="color" data-color="Black" id="color-black" style="background:#000" aria-label="Black"></button>
+          <button type="button" class="color disabled" data-color="Brown" id="color-brown" style="background:#654321" aria-label="Brown" disabled aria-disabled="true"></button>
+          <button type="button" class="color" data-color="Gray" id="color-gray" style="background:#555" aria-label="Gray"></button>
+          <button type="button" class="color disabled" data-color="Green" id="color-green" style="background:#0a3" aria-label="Green" disabled aria-disabled="true"></button> 
+        </div>
+        <div class="sizes">
+          <label for="size">المقاس (EU)</label>
+          <select id="size" required>
+              <option value="">اختر المقاس</option>
+              <option value="38">38</option>
+              <option value="39">39</option>
+              <option value="40">40</option>
+              <option value="41">41</option>
+              <option value="42">42</option>
+              <option value="43">43</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>مميزات الحذاء</h2>
+    <ul>
+      <li>مريح وخفيف الوزن</li>
+      <li>تصميم عصري</li>
+      <li>جودة عالية</li>
+      <li>مناسب لجميع الأوقات</li>
+    </ul>
+    <h2>آراء الزبناء</h2>
+    <img src="https://framerusercontent.com/images/QXECxeS6rP0jrOP19EDOlm0dRuM.png" style="width:100%;margin-top:14px;border-radius:8px;background:#ddd" alt="آراء الزبناء">
+  </div>
+
+  <div class="section order-box" id="orderForm">
+    <h2>للطلب المرجو ملئ الاستمارة </h2>
+    <form class="order-form">
+      <label for="name">الاسم الكامل</label>
+      <input id="name" type="text" name="name" required>
+      <div class="error-msg">المرجو إدخال الاسم الكامل</div>
+      <label for="phone">رقم الهاتف</label>
+      <input id="phone" type="tel" name="phone" required>
+      <div class="error-msg">المرجو إدخال رقم هاتف صحيح</div>
+      <label for="address">العنوان</label>
+      <input id="address" type="text" name="address" placeholder="الحي، الشارع..." required>
+      <div class="error-msg">المرجو إدخال العنوان الصحيح</div>
+      <label for="region">الجهة</label>
+      <select id="region" name="region" required>
+        <option value="">اختر الجهة</option>
+      </select>
+      <div class="error-msg">المرجو تحديد الجهة</div>
+      <label for="city">المدينة</label>
+      <select id="city" name="city" required>
+        <option value="">اختر المدينة</option>
+      </select>
+      <div class="error-msg">المرجو تحديد المدينة</div>
+      <label for="quantity">الكمية</label>
+      <input id="quantity" type="number" name="quantity" value="1" min="1">
+      <button type="submit">تأكيد الطلب</button>
+    </form>
+    <div class="contact-buttons">
+          <a href="https://wa.me/212663165488" aria-label="تواصل عبر واتساب" target="_blank" rel="noopener noreferrer">
+            <svg class="wh-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" role="img">
+              <!-- Official WhatsApp bubble + phone icon (white path) -->
+              <path fill="#fff" d="M20.52 3.48A11.88 11.88 0 0012 0C5.37 0 0 5.37 0 12c0 2.11.55 4.08 1.6 5.85L0 24l6.4-1.65A11.96 11.96 0 0012 24c6.63 0 12-5.37 12-12 0-3.18-1.24-6.17-3.48-8.52zM17.55 14.25c-.23-.12-1.36-.67-1.57-.75-.21-.09-.36-.12-.51.12-.17.27-.64.75-.78.9-.14.14-.28.17-.51.06-.23-.12-.97-.36-1.86-1.14-.69-.6-1.15-1.34-1.29-1.56-.14-.22-.01-.34.1-.45.1-.1.23-.28.35-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.43-.06-.12-.51-1.23-.7-1.69-.18-.44-.36-.38-.51-.39-.13-.01-.28-.01-.43-.01-.15 0-.4.06-.61.3-.23.26-.87.84-.87 2.06 0 1.22.89 2.4 1.01 2.56.12.16 1.74 2.65 4.21 3.71 2.47 1.06 2.47.71 2.91.67.44-.04 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14-.06-.1-.21-.16-.44-.28z"/>
+            </svg>
+            تواصل عبر واتساب
+          </a>
+    </div>
+  </div>
+  <!-- /* صفحة الشكر بعد الإرسال */ -->
+  <div id="thankYouPage" style="display:none; text-align:center; padding:40px;">
+  <h2 style="color:#0a7d3b;">شكراً! ✅</h2>
+  <p style="font-size:18px; margin-top:15px;">
+    تمّ استلام طلبك بنجاح<br>
+    سنقوم بالتواصل معك قريباً للتأكيد.
+  </p>
+</div>
+</div>
+
+<footer>
+  <div class="socials">
+    <a class="facebook" href="https://facebook.com/USERNAME" aria-label="Facebook" target="_blank" rel="noopener noreferrer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="#fff" d="M22 12a10 10 0 10-11.5 9.9v-7H8.9v-2.9h1.6V9.4c0-1.6 1-2.6 2.5-2.6.7 0 1.4.1 1.6.1v1.8h-1c-1 0-1.3.6-1.3 1.2v1.5h2.3l-.4 2.9h-1.9v7A10 10 0 0022 12z"/>
+      </svg>
+    </a>
+    <a class="instagram" href="https://instagram.com/USERNAME" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="#fff" d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm5 5.3A4.2 4.2 0 1016.2 11 4.2 4.2 0 0012 7.3zM17.8 6.2a1.05 1.05 0 11-1.05-1.05A1.05 1.05 0 0117.8 6.2z"/>
+      </svg>
+    </a>
+    <a class="tiktok" href="https://www.tiktok.com/@USERNAME" aria-label="TikTok" target="_blank" rel="noopener noreferrer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+        <!-- Musical-note style TikTok-like icon -->
+        <path fill="#fff" d="M12 2v10.55A4 4 0 1 1 10 15V5H6V3h6z"/>
+      </svg>
+    </a>
+  </div>
+  <div class="footer-icons">
+    <div>🚚<br>توصيل مجاني</div>
+    <div>💵<br>الدفع عند الاستلام</div>
+    <div>✅<br>ضمان الجودة</div>
+    <div>📞<br>خدمة ما بعد البيع</div>
+  </div>
+</footer>
+
+<!-- /* عداد تنازلي للعرض المحدود والفورم */ -->
+<script>
+  const PRODUCT_CODE = 'P1'; //رمز المنتج لتتبعه في النظام يغيّرها صاحب القالب لكل منتج 
+
+  // Set the countdown time (4 hours from now)
+  const hEl = document.getElementById('h');
+  const mEl = document.getElementById('m');
+  const sEl = document.getElementById('s');
+
+  const COUNTDOWN_KEY = 'adCycleEnd_' + PRODUCT_CODE;
+  const AD_DURATION = 4 * 60 * 60 * 1000; // 4 ساعات
+
+  let cycleEnd = localStorage.getItem(COUNTDOWN_KEY);
+
+  // إذا لا يوجد عداد → نبدأ دورة جديدة
+  if (!cycleEnd) {
+    cycleEnd = Date.now() + AD_DURATION;
+    localStorage.setItem(COUNTDOWN_KEY, cycleEnd);
+  } else {
+    cycleEnd = parseInt(cycleEnd, 10);
+  }
+
+  // تحديث العداد
+  function updateCountdown() {
+    let remaining = cycleEnd - Date.now();
+
+    // إذا انتهت الدورة → نبدأ دورة جديدة تلقائيًا
+    if (remaining <= 0) {
+      cycleEnd = Date.now() + AD_DURATION;
+      localStorage.setItem(COUNTDOWN_KEY, cycleEnd);
+      remaining = AD_DURATION;
+    }
+
+    const totalSeconds = Math.floor(remaining / 1000);
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+
+    hEl.innerText = String(h).padStart(2,'0');
+    mEl.innerText = String(m).padStart(2,'0');
+    sEl.innerText = String(s).padStart(2,'0');
+  }
+
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+
+  function swapImage(el){
+    document.getElementById('mainImage').src = el.src;
+  }
+
+  const regions = {
+    "طنجة-تطوان-الحسيمة": ["طنجة","تطوان","الحسيمة","العرائش","شفشاون","الفحص-أنجرة","وزان"],
+    "الجهة الشرقية": ["وجدة","الناظور","بركان","جرادة","تاوريرت","الدريوش","فجيج"],
+    "فاس-مكناس": ["فاس","مكناس","إفران","صفرو","الحاجب","مولاي يعقوب","تاونات","بولمان"],
+    "الرباط-سلا-القنيطرة": ["الرباط","سلا","القنيطرة","الصخيرات-تمارة","سيدي قاسم","سيدي سليمان","الخميسات"],
+    "بني ملال-خنيفرة": ["بني ملال","خنيفرة","أزيلال","الفقيه بن صالح","خريبكة"],
+    "الدار البيضاء-سطات": ["الدار البيضاء","المحمدية","الجديدة","مديونة","النواصر","برشيد","سطات","سيدي بنور"],
+    "مراكش-آسفي": ["مراكش","آسفي","الصويرة","اليوسفية","شيشاوة","قلعة السراغنة","الرحامنة"],
+    "درعة-تافيلالت": ["الرشيدية","ورزازات","تنغير","ميدلت","زاكورة"],
+    "سوس-ماسة": ["أكادير","إنزكان","اشتوكة آيت باها","تيزنيت","تارودانت"],
+    "كلميم-واد نون": ["كلميم","طانطان","سيدي إفني","آسا الزاك"],
+    "العيون-الساقية الحمراء": ["العيون","بوجدور","طرفاية","السمارة"],
+    "الداخلة-وادي الذهب": ["الداخلة","أوسرد"]
+  };
+  const regionSelect=document.getElementById('region');
+  const citySelect=document.getElementById('city');
+  for(const r in regions){
+    const opt=document.createElement('option');
+    opt.value=r; opt.textContent=r;
+    regionSelect.appendChild(opt);
+  }
+
+  regionSelect.addEventListener('change',()=>{
+    citySelect.innerHTML='<option value="">اختر المدينة</option>';
+    if(!regions[regionSelect.value]) return;
+    regions[regionSelect.value].forEach(c=>{
+      const opt=document.createElement('option');
+      opt.value=c; opt.textContent=c;
+      citySelect.appendChild(opt);
+    });
+  });
+</script>
+
+<!-- /* اختيار اللون */ -->
+<script>
+  /*
+  إعدادات المنتج يحدد تلقائيًا هل القالب يحتوي ألوان / مقاسات
+  true = الحقل مطلوب
+  false = الحقل غير موجود لهذا المنتج
+*/
+const PRODUCT_OPTIONS = {
+  hasColor: document.querySelectorAll('.color:not(.disabled)').length > 0,
+  hasSize: document.getElementById('size')?.options.length > 1
+};
+let selectedColor = null;
+
+if (PRODUCT_OPTIONS.hasColor) {
+  document.querySelectorAll('.color:not(.disabled)').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.color').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedColor = btn.dataset.color;
+      document.querySelector('.colors').classList.remove('input-error');
+    });
+  });
+}
+</script>
+
+<!-- /* التحقق من صحة الحقول في الفورم */  -->
+<script>
+  function validateField(field, errorMsg) {
+    if (!field.value || !field.value.trim()) {
+      field.classList.add('input-error');
+      if (errorMsg) errorMsg.style.display = 'block';
+      return false;
+    }
+    if (field.name === 'phone' && !/^0[5-7][0-9]{8}$/.test(field.value)) {
+      field.classList.add('input-error');
+      errorMsg.style.display = 'block';
+      return false;
+    }
+    return true;
+  }
+  // Helper to find the corresponding .error-msg element for a field
+  function getErrorEl(field){
+    const next = field.nextElementSibling;
+    if(next && next.classList && next.classList.contains('error-msg')) return next;
+    return null;
+  }
+
+  document.querySelectorAll('.order-form input, .order-form select')
+  .forEach(field => {
+    const errorMsg = getErrorEl(field);
+    const eventType = field.tagName === 'SELECT' ? 'change' : 'blur';
+
+    field.addEventListener(eventType, () => {
+      validateField(field, errorMsg);
+    });
+
+    field.addEventListener('input', () => {
+      field.classList.remove('input-error');
+      if (errorMsg) errorMsg.style.display = 'none';
+    });
+  });
+</script>
+
+<!-- /* نموذج الطلب وإرساله إلى Google Sheets عبر Google Apps Script */ -->
+<script>
+  const AppScriptURL = 'https://script.google.com/macros/s/AKfycbwPMVUPTiP6IhjKbXPk7xg_gTz6maN4o8yH_657k5CW52QQSkwUJm6HFj2x07mPyz6L-g/exec';// غيّرها صاحب القالب إلى رابط سكريبت جوجل الخاص به
+  const form = document.querySelector('.order-form');
+  const sizeEl = document.getElementById('size');
+  let isSubmitting = false;
+
+  // Helper: smooth-scroll and focus on a non-interactive element
+  function focusAndScrollTo(el){
+    if(!el) return;
+    // smooth scroll to center the element
+    el.scrollIntoView({behavior:'smooth', block:'center'});
+    // make focusable briefly and focus for keyboard users
+    el.setAttribute('tabindex','-1');
+    try{ el.focus({preventScroll:true}); }catch(e){}
+    setTimeout(()=> el.removeAttribute('tabindex'), 800);
+  }
+
+  /* Check if order was already sent in this session */
+  window.addEventListener('pageshow', () => {
+    if (sessionStorage.getItem('orderSent_' + PRODUCT_CODE)) {
+      form.style.display = 'none';
+      document.getElementById('thankYouPage').style.display = 'block';
+    }
+  });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    if (isSubmitting) return;
+    isSubmitting = true;
+    let hasError = false;
+
+    document.querySelectorAll('.order-form input, .order-form select')
+    .forEach(field => {
+      const errorMsg = getErrorEl(field);
+      if (!validateField(field, errorMsg)) hasError = true;
+    });
+
+    if (PRODUCT_OPTIONS.hasColor && !selectedColor) {
+      document.querySelector('.colors').classList.add('input-error');
+      hasError = true;
+    }
+
+    if (PRODUCT_OPTIONS.hasSize && !sizeEl.value) {
+      sizeEl.classList.add('input-error');
+      hasError = true;
+    }
+
+    if (hasError) {
+      const firstError = document.querySelector('.input-error');
+
+      // If the user missed selecting color/size, scroll to the options area
+      if (PRODUCT_OPTIONS.hasColor && !selectedColor) {
+        const opts = document.querySelector('.options');
+        focusAndScrollTo(opts);
+      } else if (PRODUCT_OPTIONS.hasSize && !sizeEl.value) {
+        const sz = document.querySelector('.sizes') || document.querySelector('.options');
+        focusAndScrollTo(sz);
+      } else if (firstError) {
+        // Default: focus/scroll the first error element
+        try{ if (firstError.focus) firstError.focus(); }catch(e){}
+        focusAndScrollTo(firstError);
+      }
+
+      isSubmitting = false;
+      return;
+    }
+
+    const finalProductCode = [
+      PRODUCT_CODE,
+      selectedColor || '',
+      sizeEl.value || ''
+    ].filter(Boolean).join('-');
+
+    const data = {
+      product: finalProductCode,
+      name: form.name.value.trim(),
+      phone: form.phone.value.trim(),
+      address: form.address.value.trim(),
+      region: form.region.value,
+      city: form.city.value,
+      quantity: form.quantity.value
+    };
+
+    const submitBtn = form.querySelector('button');
+    submitBtn.disabled = true;
+    submitBtn.innerText = 'جارٍ إرسال الطلب...';
+
+    // Send as application/x-www-form-urlencoded to avoid CORS preflight (Apps Script doesn't handle OPTIONS)
+    const payload = new URLSearchParams();
+    Object.keys(data).forEach(k => payload.append(k, data[k]));
+
+    fetch(AppScriptURL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+      body: payload.toString()
+    })
+    .then(r => r.json())
+    .then(() => {
+      form.reset();
+      form.style.display = 'none';
+      document.getElementById('thankYouPage').style.display = 'block';
+      try{ sessionStorage.setItem('orderSent_' + PRODUCT_CODE, 'true'); }catch(e){}
+      try{ localStorage.setItem('orderSent_' + PRODUCT_CODE, 'true'); }catch(e){}
+    })
+    .catch(() => {
+      alert('حدث خطأ، حاول مرة أخرى');
+      isSubmitting = false;
+      submitBtn.disabled = false;
+      submitBtn.innerText = 'تأكيد الطلب';
+    });
+  });
+</script>
+</body>
+</html>
