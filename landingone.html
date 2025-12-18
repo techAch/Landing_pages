@@ -37,7 +37,20 @@
     /* Make section headings match the form border color */
     .section h2, .order-box h2 { color: #00521e; }
     .container {max-width:1100px; margin:auto; padding:16px;}
-    .hero {background:#fff70066; padding: 2%; border-radius:8px; display:grid; grid-template-columns:1fr 1fr; gap:20px; position:relative; padding-top:64px; overflow:hidden; box-sizing:border-box;}
+    .hero {
+      background:#fff70066;
+      padding: 4%;
+      border-radius:8px;
+      display:flex; gap:20px;
+      position:relative;
+      padding-top:64px;
+      overflow:hidden;
+      box-sizing:border-box;
+      flex-wrap:nowrap;
+      align-items:center;
+    }
+    /* Make each column flexible and responsive */
+    .hero > div {flex: 1 1 50%; min-width:240px; box-sizing:border-box;}
     .hero img {width:100%; border-radius:8px; background:#ddd; height:auto; max-height:420px; object-fit:cover; padding: 1px; display:block; max-width:100%; box-sizing:border-box;} 
 
     .price-box{text-align:center;margin:10px 0;}
@@ -111,7 +124,8 @@
     }
 
     @media(max-width:768px){
-      .hero{grid-template-columns:1fr; gap:12px;}
+      .hero{flex-direction:column; gap:12px;}
+      .hero > div{flex-basis:100%;}
       .hero img{max-height:280px; height:auto}
       .thumbnails{justify-content:center; flex-wrap:wrap; gap:6px}
       .thumbnails img{width:48px; height:48px}
