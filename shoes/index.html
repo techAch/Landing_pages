@@ -251,12 +251,12 @@
   </div>
   <!-- /* صفحة الشكر بعد الإرسال */ -->
   <div id="thankYouPage" style="display:none; text-align:center; padding:40px;">
-  <h2 style="color:#0a7d3b;">شكراً! ✅</h2>
-  <p style="font-size:18px; margin-top:15px;">
-    تمّ استلام طلبك بنجاح<br>
-    سنقوم بالتواصل معك قريباً للتأكيد.
-  </p>
-</div>
+    <h2 style="color:#0a7d3b;">شكراً! ✅</h2>
+    <p style="font-size:18px; margin-top:15px;">
+      تمّ استلام طلبك بنجاح<br>
+      سنقوم بالتواصل معك قريباً للتأكيد.
+    </p>
+  </div>
 </div>
 
 <footer>
@@ -432,7 +432,7 @@ if (PRODUCT_OPTIONS.hasColor) {
   });
 </script>
 
-<!-- /* نموذج الطلب وإرساله إلى Google Sheets عبر Google Apps Script */ -->
+<!-- /* نموذج الطلب وإرساله إلى جوجل شيت*/ -->
 <script>
   const AppScriptURL = 'https://script.google.com/macros/s/AKfycbwPMVUPTiP6IhjKbXPk7xg_gTz6maN4o8yH_657k5CW52QQSkwUJm6HFj2x07mPyz6L-g/exec';// غيّرها صاحب القالب إلى رابط سكريبت جوجل الخاص به
   const form = document.querySelector('.order-form');
@@ -464,6 +464,7 @@ if (PRODUCT_OPTIONS.hasColor) {
     isSubmitting = true;
     let hasError = false;
 
+    // Validate all fields
     document.querySelectorAll('.order-form input, .order-form select')
     .forEach(field => {
       const errorMsg = getErrorEl(field);

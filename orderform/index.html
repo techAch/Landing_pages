@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="نموذج طلب - ملء البيانات والطلب بسهولة">
+    <title>نموذج الطلب</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: sans-serif, 'Courier New', Courier, monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .form-container {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 { color: #333; margin-bottom: 30px; text-align: center; }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        input.input-error, textarea.input-error {
+            border-color: #e53935;
+        }
+        .error-msg {
+            color: #e53935;
+            font-size: 13px;
+            margin-top: 5px;
+            display: none;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover:not(:disabled) {
+            background: #764ba2;
+        }
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .success-msg {
+            background: #c8e6c9;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            display: none;
+            text-align: center;
+        }
+        @media(max-width: 480px) {
+            .form-container { padding: 20px; }
+            h1 { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+<div class="form-container">
+    <h1>📋 نموذج الطلب</h1>
+    <form class="order-form">
+        <div class="form-group">
+            <label for="name">الاسم الكامل *</label>
+            <input id="name" type="text" name="name" required>
+            <div class="error-msg">المرجو إدخال الاسم الكامل</div>
+        </div>
+
+        <div class="form-group">
+            <label for="phone">رقم الهاتف *</label>
+            <input id="phone" type="tel" name="phone" placeholder="06XXXXXXXX" required>
+            <div class="error-msg">المرجو إدخال رقم هاتف صحيح</div>
+        </div>
+
+        <div class="form-group">
+            <label for="note">ملاحظة</label>
+            <textarea id="note" name="note" rows="4" placeholder="اكتب ملاحظتك هنا..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="address">العنوان *</label>
+            <input id="address" type="text" name="address" placeholder="الحي، الشارع..." required>
+            <div class="error-msg">المرجو إدخال العنوان الصحيح</div>
+        </div>
+
+        <div class="form-group">
+            <label for="region">الجهة *</label>
+            <select id="region" name="region" required>
+                <option value="">اختر الجهة</option>
+            </select>
+            <div class="error-msg">المرجو تحديد الجهة</div>
+        </div>
+
+        <div class="form-group">
+            <label for="city">المدينة *</label>
+            <select id="city" name="city" required>
+                <option value="">اختر المدينة</option>
+            </select>
+            <div class="error-msg">المرجو تحديد المدينة</div>
+        </div>
+
+        <div class="form-group">
+            <label for="quantity">الكمية *</label>
+            <input id="quantity" type="number" name="quantity" value="1" min="1" required>
+        </div>
+
+        <button type="submit">تأكيد الطلب</button>
+    </form>
+      <!-- /* صفحة الشكر بعد الإرسال */ -->
+    <div id="thankYouPage" style="display:none; text-align:center; padding:40px;">
+        <h2 style="color:#0a7d3b;">شكراً! ✅</h2>
+        <p style="font-size:18px; margin-top:15px;">
+            تمّ استلام طلبك بنجاح<br>
+            سنقوم بالتواصل معك قريباً للتأكيد.
+        </p>
+    </div>
+</div>
+
+<script>
+// Data for regions and their corresponding cities
+const regions = {
+    "طنجة-تطوان-الحسيمة": ["طنجة","تطوان","الحسيمة","العرائش","شفشاون","الفحص-أنجرة","وزان"],
+    "الجهة الشرقية": ["وجدة","الناظور","بركان","جرادة","تاوريرت","الدريوش","فجيج"],
+    "فاس-مكناس": ["فاس","مكناس","إفران","صفرو","الحاجب","مولاي يعقوب","تاونات","بولمان"],
+    "الرباط-سلا-القنيطرة": ["الرباط","سلا","القنيطرة","الصخيرات-تمارة","سيدي قاسم","سيدي سليمان","الخميسات"],
+    "بني ملال-خنيفرة": ["بني ملال","خنيفرة","أزيلال","الفقيه بن صالح","خريبكة"],
+    "الدار البيضاء-سطات": ["الدار البيضاء","المحمدية","الجديدة","مديونة","النواصر","برشيد","سطات","سيدي بنور"],
+    "مراكش-آسفي": ["مراكش","آسفي","الصويرة","اليوسفية","شيشاوة","قلعة السراغنة","الرحامنة"],
+    "درعة-تافيلالت": ["الرشيدية","ورزازات","تنغير","ميدلت","زاكورة"],
+    "سوس-ماسة": ["أكادير","إنزكان","اشتوكة آيت باها","تيزنيت","تارودانت"],
+    "كلميم-واد نون": ["كلميم","طانطان","سيدي إفني","آسا الزاك"],
+    "العيون-الساقية الحمراء": ["العيون","بوجدور","طرفاية","السمارة"],
+    "الداخلة-وادي الذهب": ["الداخلة","أوسرد"]
+};
+
+const regionSelect = document.getElementById('region');
+const citySelect = document.getElementById('city');
+const form = document.querySelector('.order-form');
+
+Object.keys(regions).forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r;
+    opt.textContent = r;
+    regionSelect.appendChild(opt);
+});
+
+regionSelect.addEventListener('change', () => {
+    citySelect.innerHTML = '<option value="">اختر المدينة</option>';
+    if (regions[regionSelect.value]) {
+        regions[regionSelect.value].forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = c;
+            citySelect.appendChild(opt);
+        });
+    }
+});
+  /* Check if order was already sent in this session */
+  window.addEventListener('pageshow', () => {
+    if (sessionStorage.getItem('orderSent_')) {
+      form.style.display = 'none';
+      document.getElementById('thankYouPage').style.display = 'block';
+    }
+  });
+
+// Form submission handling
+let isSubmitting = false;
+const AppScriptURL = 'https://script.google.com/macros/s/AKfycbwJaZKJE-41cQgBRpa7kh0X-wRjH7gCzNLSyWIZ7mahRC53VFBeutpn8mjYL2ii-dLjzg/exec'; // غيّرها صاحب القالب إلى رابط سكريبت جوجل الخاص به
+
+form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+    isSubmitting = true;
+
+    const data = {
+        name: form.name.value.trim(),
+        phone: form.phone.value.trim(),
+        region: form.region.value,
+        city: form.city.value,
+        address: form.address.value.trim(),
+        quantity: form.quantity.value,
+        note: form.note.value.trim()
+    };
+    const submitButton = form.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.textContent = 'جاري الإرسال...';
+
+    fetch(AppScriptURL, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            form.reset();
+            sessionStorage.setItem('orderSent_', 'true');
+            form.style.display = 'none';
+            document.querySelector('.thankYouPage').style.display = 'block';
+        } else {
+            alert('حدث خطأ أثناء إرسال الطلب. يرجى المحاولة لاحقاً.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ أثناء إرسال الطلب. يرجى المحاولة لاحقاً.');
+    });
+    isSubmitting = false;
+    submitButton.disabled = false;
+    submitButton.textContent = 'تأكيد الطلب';
+});
+</script>
+</body>
+</html>
