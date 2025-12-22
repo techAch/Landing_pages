@@ -110,8 +110,9 @@
         </div>
 
         <div class="form-group">
-            <label for="note">ملاحظة</label>
+            <label for="note">ملاحظة *</label>
             <textarea id="note" name="note" rows="4" placeholder="اكتب ملاحظتك هنا..."></textarea>
+            <div class="error-msg">المرجو إدخال معلومات عن الطلب</div>
         </div>
 
         <div class="form-group">
@@ -202,7 +203,7 @@ regionSelect.addEventListener('change', () => {
 
 // Form submission handling
 let isSubmitting = false;
-const AppScriptURL = 'https://script.google.com/macros/s/AKfycbwJaZKJE-41cQgBRpa7kh0X-wRjH7gCzNLSyWIZ7mahRC53VFBeutpn8mjYL2ii-dLjzg/exec'; // غيّرها صاحب القالب إلى رابط سكريبت جوجل الخاص به
+const AppScriptURL = 'https://script.google.com/macros/s/AKfycbzGfvqYdjFdSSLx07Yl2T1tHzMIbg6vqZUm79YE4Mj-axBRGVhXxt1GzY0IELFEyVnCvA/exec'; // غيّرها صاحب القالب إلى رابط سكريبت جوجل الخاص به
 
 form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -222,19 +223,25 @@ form.addEventListener('submit', (e) => {
     submitButton.disabled = true;
     submitButton.textContent = 'جاري الإرسال...';
 
+    // Build form-encoded data from the actual form (ensures textarea and all fields are included)
+    const formParams = new URLSearchParams();
+    for (const [k, v] of new FormData(form)) {
+        const value = (typeof v === 'string') ? v.trim() : v;
+        formParams.append(k, value);
+    }
+    // Debug: show which fields will be sent
+    console.log('Submitting fields:', Array.from(formParams.entries()));
+
     fetch(AppScriptURL, {
         method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-            'Content-Type': 'application/json'
-        }
+        body: formParams // browser will use application/x-www-form-urlencoded
     })
     .then(response => {
         if (response.ok) {
             form.reset();
             sessionStorage.setItem('orderSent_', 'true');
             form.style.display = 'none';
-            document.querySelector('.thankYouPage').style.display = 'block';
+            document.getElementById('thankYouPage').style.display = 'block';
         } else {
             alert('حدث خطأ أثناء إرسال الطلب. يرجى المحاولة لاحقاً.');
         }
@@ -242,10 +249,13 @@ form.addEventListener('submit', (e) => {
     .catch(error => {
         console.error('Error:', error);
         alert('حدث خطأ أثناء إرسال الطلب. يرجى المحاولة لاحقاً.');
+    })
+    .finally(() => {
+        // restore submit state
+        isSubmitting = false;
+        submitButton.disabled = false;
+        submitButton.textContent = 'تأكيد الطلب';
     });
-    isSubmitting = false;
-    submitButton.disabled = false;
-    submitButton.textContent = 'تأكيد الطلب';
 });
 </script>
 </body>
