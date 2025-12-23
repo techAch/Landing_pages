@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="نموذج طلب - ملء البيانات والطلب بسهولة">
+    <title>نموذج الطلب</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: sans-serif, 'Courier New', Courier, monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .form-container {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 { color: #333; margin-bottom: 30px; text-align: center; }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        input.input-error, textarea.input-error {
+            border-color: #e53935;
+        }
+        .error-msg {
+            color: #e53935;
+            font-size: 13px;
+            margin-top: 5px;
+            display: none;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover:not(:disabled) {
+            background: #764ba2;
+        }
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .success-msg {
+            background: #c8e6c9;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            display: none;
+            text-align: center;
+        }
+        @media(max-width: 480px) {
+            .form-container { padding: 20px; }
+            h1 { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+<div class="form-container">
+    <h1>📋 نموذج الطلب</h1>
+    <form class="order-form">
+        <div class="form-group">
+            <label for="name">الاسم الكامل *</label>
+            <input id="name" type="text" name="name" required>
+            <div class="error-msg">المرجو إدخال الاسم الكامل</div>
+        </div>
+
+        <div class="form-group">
+            <label for="phone">رقم الهاتف *</label>
+            <input id="phone" type="tel" name="phone" placeholder="06XXXXXXXX" required>
+            <div class="error-msg">المرجو إدخال رقم هاتف صحيح</div>
+        </div>
+
+        <div class="form-group">
+            <label for="address">العنوان *</label>
+            <input id="address" type="text" name="address" placeholder="الحي، الشارع..." required>
+            <div class="error-msg">المرجو إدخال العنوان الصحيح</div>
+        </div>
+
+        <div class="form-group">
+            <label for="note">ملاحظة *</label>
+            <textarea id="note" name="note" rows="4" placeholder="اكتب ملاحظتك هنا..."></textarea>
+            <div class="error-msg">المرجو إدخال معلومات عن الطلب</div>
+        </div>
+
+        <button type="submit">تأكيد الطلب</button>
+    </form>
+      <!-- /* صفحة الشكر بعد الإرسال */ -->
+    <div id="thankYouPage" style="display:none; text-align:center; padding:40px;">
+        <h2 style="color:#0a7d3b;">شكراً! ✅</h2>
+        <p style="font-size:18px; margin-top:15px;">
+            تمّ استلام طلبك بنجاح<br>
+            سنقوم بالتواصل معك قريباً للتأكيد.
+        </p>
+    </div>
+</div>
+
+<script>
+const form = document.querySelector('.order-form');
+  /* Check if order was already sent in this session */
+  window.addEventListener('pageshow', () => {
+    if (sessionStorage.getItem('orderSent_')) {
+      form.style.display = 'none';
+      document.getElementById('thankYouPage').style.display = 'block';
+    }
+  });
+
+// Form submission handling
+let isSubmitting = false;
+const AppScriptURL = 'https://script.google.com/macros/s/AKfycbxtcYMt18dXPalLYTYUOfSl9JwWygjQTJImSiyF991MrFebQF40TC4_N0LRehxdSRzcaQ/exec'; // غيّرها صاحب القالب إلى رابط سكريبت جوجل الخاص به
+
+form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+    isSubmitting = true;
+
+    const data = {
+        name: form.name.value.trim(),
+        phone: form.phone.value.trim(),
+        address: form.address.value.trim(),
+        note: form.note.value.trim()
+    };
+    const submitButton = form.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.textContent = 'جاري الإرسال...';
+
+    // Build form-encoded data from the actual form (ensures textarea and all fields are included)
+    const formParams = new URLSearchParams();
+    for (const [k, v] of new FormData(form)) {
+        const value = (typeof v === 'string') ? v.trim() : v;
+        formParams.append(k, value);
+    }
+    // Debug: show which fields will be sent
+    console.log('Submitting fields:', Array.from(formParams.entries()));
+
+    fetch(AppScriptURL, {
+        method: 'POST',
+        body: formParams // browser will use application/x-www-form-urlencoded
+    })
+    .then(response => {
+        if (response.ok) {
+            form.reset();
+            sessionStorage.setItem('orderSent_', 'true');
+            form.style.display = 'none';
+            document.getElementById('thankYouPage').style.display = 'block';
+        } else {
+            alert('حدث خطأ أثناء إرسال الطلب. يرجى المحاولة لاحقاً.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ أثناء إرسال الطلب. يرجى المحاولة لاحقاً.');
+    })
+    .finally(() => {
+        // restore submit state
+        isSubmitting = false;
+        submitButton.disabled = false;
+        submitButton.textContent = 'تأكيد الطلب';
+    });
+});
+</script>
+</body>
+</html>
