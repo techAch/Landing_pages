@@ -108,6 +108,21 @@
             background: #1ebe5a;
             box-shadow: none;
         }
+        .loc-btn {
+            display: block;
+            width: 100%;
+            padding: 10px 12px;
+            background: #4A90E2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 8px;
+            cursor: pointer;
+        }
+        .loc-btn:hover { background: #3a78c6; }
         .success-msg {
             background: #c8e6c9;
             color: #2e7d32;
@@ -146,9 +161,16 @@
         </div>
 
         <div class="form-group">
+            <label for="location">الموقع الجغرافي (اختياري)</label>
+            <input id="location" name="location" type="text" placeholder="خط العرض, خط الطول" readonly>
+            <div class="error-msg" id="locStatus" style="display:block; color:#666; font-size:13px; margin-top:5px;"></div>
+            <button type="button" id="locBtn" class="loc-btn">تحديد الموقع</button>
+        </div>
+
+        <div class="form-group">
             <label for="note">ملاحظة *</label>
-            <textarea id="note" name="note" rows="4" placeholder="تفاصيل التوصيل (مكان الاستلام ومكان اللي بغيتو التوصيل إليه، وأي ملاحظات إضافية)
-مثال: خذو الطلب من كافيه طنجة وسلّموه إلى شارع محمد 12
+            <textarea id="note" name="note" rows="4" placeholder="تفاصيل التوصيل (مكان الاستلام وتفاصيل الطلبية، وأي ملاحظات إضافية)
+مثال: خذو الطلب كذا وكذا من كافيه طنجة وسلموه فالساعة كذا وكذا
 "></textarea>
             <div class="error-msg">المرجو إدخال معلومات عن الطلب</div>
         </div>
@@ -179,6 +201,35 @@ const form = document.querySelector('.order-form');
       document.getElementById('thankYouPage').style.display = 'block';
     }
   });
+
+  // Geolocation: fill #location input with "lat,lng" when user clicks the button
+  const locInput = document.getElementById('location');
+  const locBtn = document.getElementById('locBtn');
+  const locStatus = document.getElementById('locStatus');
+  if (locBtn && locInput) {
+    locBtn.addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        if (locStatus) locStatus.textContent = 'متصفحك لا يدعم تحديد الموقع.';
+        return;
+      }
+      locBtn.disabled = true;
+      const prev = locBtn.textContent;
+      locBtn.textContent = 'جاري تحديد الموقع...';
+      if (locStatus) locStatus.textContent = '';
+      navigator.geolocation.getCurrentPosition((pos) => {
+        const lat = pos.coords.latitude.toFixed(6);
+        const lng = pos.coords.longitude.toFixed(6);
+        locInput.value = `${lat},${lng}`;
+        if (locStatus) locStatus.textContent = 'تم تحديد الموقع';
+        locBtn.textContent = prev;
+        locBtn.disabled = false;
+      }, (err) => {
+        if (locStatus) locStatus.textContent = 'تعذر الحصول على الموقع: ' + (err.message || 'خطأ');
+        locBtn.textContent = prev;
+        locBtn.disabled = false;
+      }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+    });
+  }
 
 // Form submission handling
 let isSubmitting = false;
