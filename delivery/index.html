@@ -202,33 +202,160 @@ const form = document.querySelector('.order-form');
     }
   });
 
-  // Geolocation: fill #location input with "lat,lng" when user clicks the button
+  // Geolocation: improved handler that waits for permission, prompts to enable GPS, and retries once
   const locInput = document.getElementById('location');
   const locBtn = document.getElementById('locBtn');
   const locStatus = document.getElementById('locStatus');
-  if (locBtn && locInput) {
-    locBtn.addEventListener('click', () => {
-      if (!navigator.geolocation) {
-        if (locStatus) locStatus.textContent = 'متصفحك لا يدعم تحديد الموقع.';
+
+  async function attemptGetLocation(retriesLeft = 1) {
+    if (!navigator.geolocation) {
+      if (locStatus) locStatus.textContent = 'متصفحك لا يدعم تحديد الموقع.';
+      return;
+    }
+
+    locBtn.disabled = true;
+    const prev = locBtn.textContent;
+    locBtn.textContent = 'جاري تحديد الموقع...';
+    if (locStatus) locStatus.textContent = '';
+
+    // Helper to call getCurrentPosition as a promise
+    const getPosition = () => new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+    });
+
+    // If Permissions API is available, inspect state first
+    try {
+      if (navigator.permissions && navigator.permissions.query) {
+        try {
+          const status = await navigator.permissions.query({ name: 'geolocation' });
+          if (status.state === 'denied') {
+            if (locStatus) locStatus.textContent = 'تم رفض إذن الموقع. الرجاء تمكين الإذن في إعدادات المتصفح ثم المحاولة.';
+            locBtn.disabled = false;
+            locBtn.textContent = prev;
+            return;
+          }
+        } catch (e) {
+          // ignore permission query failures and continue to try getCurrentPosition
+        }
+      }
+
+      // Try to get position (this may trigger the permission prompt)
+      let pos = null;
+      try {
+        pos = await getPosition();
+      } catch (err) {
+        // Handle common errors
+        const code = err && err.code;
+        // Permission denied: if user just granted/denied, wait for permission change then prompt for GPS enable
+        if (code === 1) {
+          if (navigator.permissions && navigator.permissions.query) {
+            try {
+              const status = await navigator.permissions.query({ name: 'geolocation' });
+              if (status.state === 'granted') {
+                // Permission granted but we still failed (likely GPS off). Ask user to enable GPS and retry
+                if (confirm('تم منح إذن الموقع. هل قمت بتشغيل نظام تحديد المواقع (GPS) الآن؟ اضغط موافق لإعادة المحاولة.')) {
+                  if (retriesLeft > 0) return attemptGetLocation(retriesLeft - 1);
+                } else {
+                  if (locStatus) locStatus.textContent = 'يرجى تفعيل GPS ثم المحاولة.';
+                }
+                locBtn.disabled = false;
+                locBtn.textContent = prev;
+                return;
+              }
+
+              // If permission is still 'prompt', wait up to 30s for the user to respond to the browser permission prompt
+              if (status.state === 'prompt') {
+                if (locStatus) locStatus.textContent = 'الرجاء منح إذن الوصول للموقع من خلال نافذة المتصفح الظاهرة.';
+                // Wait for change event or timeout
+                const granted = await new Promise((resolve) => {
+                  let settled = false;
+                  const onChange = () => {
+                    if (status.state === 'granted') {
+                      settled = true;
+                      try { status.removeEventListener('change', onChange); } catch(e) { status.onchange = null; }
+                      resolve(true);
+                    }
+                  };
+                  try { status.addEventListener('change', onChange); } catch(e) { status.onchange = onChange; }
+                  // timeout
+                  setTimeout(() => { if (!settled) { try { status.removeEventListener && status.removeEventListener('change', onChange); } catch(e) { status.onchange = null; } resolve(false); } }, 30000);
+                });
+                if (granted) {
+                  if (confirm('تم منح الإذن. هل قمت بتشغيل نظام تحديد المواقع (GPS) الآن؟ اضغط موافق لإعادة المحاولة.')) {
+                    if (retriesLeft > 0) return attemptGetLocation(retriesLeft - 1);
+                  } else {
+                    if (locStatus) locStatus.textContent = 'يرجى تفعيل GPS ثم المحاولة.';
+                  }
+                } else {
+                  if (locStatus) locStatus.textContent = 'لم يتم منح الإذن. الرجاء المحاولة مرة أخرى.';
+                }
+                locBtn.disabled = false;
+                locBtn.textContent = prev;
+                return;
+              }
+
+              // Otherwise permission was denied
+              if (status.state === 'denied') {
+                if (locStatus) locStatus.textContent = 'تم رفض إذن الموقع. الرجاء تمكين الإذن في إعدادات المتصفح.';
+                locBtn.disabled = false;
+                locBtn.textContent = prev;
+                return;
+              }
+            } catch (e) {
+              // fallback: inform user to grant permission and try again
+              if (locStatus) locStatus.textContent = 'الرجاء منح إذن الموقع ثم النقر على تحديد الموقع مرة أخرى.';
+              locBtn.disabled = false;
+              locBtn.textContent = prev;
+              return;
+            }
+          } else {
+            // Permissions API not available, instruct the user to grant permission and try again
+            if (locStatus) locStatus.textContent = 'الرجاء منح إذن الموقع ثم النقر على تحديد الموقع مرة أخرى.';
+            locBtn.disabled = false;
+            locBtn.textContent = prev;
+            return;
+          }
+        }
+
+        // Position unavailable or timeout => likely GPS off; ask user to enable and retry once
+        if (code === 2 || code === 3 || (err && err.message && err.message.toLowerCase().includes('timeout'))) {
+          if (confirm('تعذر الحصول على الموقع. هل قمت بتشغيل نظام تحديد المواقع (GPS) الآن؟ اضغط موافق لإعادة المحاولة.')) {
+            if (retriesLeft > 0) return attemptGetLocation(retriesLeft - 1);
+          } else {
+            if (locStatus) locStatus.textContent = 'يرجى تفعيل GPS ثم المحاولة.';
+          }
+          locBtn.disabled = false;
+          locBtn.textContent = prev;
+          return;
+        }
+
+        // Other errors
+        if (locStatus) locStatus.textContent = 'خطأ أثناء تحديد الموقع: ' + (err && err.message ? err.message : 'خطأ غير معروف');
+        locBtn.disabled = false;
+        locBtn.textContent = prev;
         return;
       }
-      locBtn.disabled = true;
-      const prev = locBtn.textContent;
-      locBtn.textContent = 'جاري تحديد الموقع...';
-      if (locStatus) locStatus.textContent = '';
-      navigator.geolocation.getCurrentPosition((pos) => {
+
+      // If we got a position successfully
+      if (pos) {
         const lat = pos.coords.latitude.toFixed(6);
         const lng = pos.coords.longitude.toFixed(6);
         locInput.value = `${lat},${lng}`;
         if (locStatus) locStatus.textContent = 'تم تحديد الموقع';
         locBtn.textContent = prev;
         locBtn.disabled = false;
-      }, (err) => {
-        if (locStatus) locStatus.textContent = 'تعذر الحصول على الموقع: ' + (err.message || 'خطأ');
-        locBtn.textContent = prev;
-        locBtn.disabled = false;
-      }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
-    });
+        return;
+      }
+    } catch (outerErr) {
+      if (locStatus) locStatus.textContent = 'خطأ أثناء محاولة تحديد الموقع.';
+      locBtn.disabled = false;
+      locBtn.textContent = prev;
+      return;
+    }
+  }
+
+  if (locBtn && locInput) {
+    locBtn.addEventListener('click', () => attemptGetLocation(1));
   }
 
 // Form submission handling
