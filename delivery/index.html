@@ -207,84 +207,78 @@ const form = document.querySelector('.order-form');
   const locBtn = document.getElementById('locBtn');
   const locStatus = document.getElementById('locStatus');
 
-  async function attemptGetLocation(retriesLeft = 1) {
-  // 1. Initial Checks & UI Setup
-  if (!navigator.geolocation) {
-    updateStatus('متصفحك لا يدعم تحديد الموقع.');
-    return;
-  }
-
-  const originalBtnText = locBtn.textContent;
-  locBtn.disabled = true;
-  locBtn.textContent = 'جاري تحديد الموقع...';
-  updateStatus('');
-
-  // Helper to reset UI state
-  function resetUI() {
-    locBtn.disabled = false;
-    locBtn.textContent = originalBtnText;
-  }
-
-  // Helper to update status text
-  function updateStatus(msg) {
-    if (locStatus) locStatus.textContent = msg;
-  }
-
-  // 2. Permission Pre-check
-  if (navigator.permissions && navigator.permissions.query) {
-    try {
-      const permission = await navigator.permissions.query({ name: 'geolocation' });
-      if (permission.state === 'denied') {
-        updateStatus('تم رفض إذن الموقع. يرجى تفعيله من إعدادات المتصفح.');
-        resetUI();
-        return;
-      }
-    } catch (e) { /* Ignore query errors and proceed to request */ }
-  }
-
-  // 3. The Actual Request
-  try {
-    const pos = await new Promise((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0
-      });
-    });
-
-    // Success
-    const { latitude, longitude } = pos.coords;
-    locInput.value = `${latitude.toFixed(6)},${longitude.toFixed(6)}`;
-    updateStatus('تم تحديد الموقع بنجاح');
-    resetUI();
-
-  } catch (err) {
-    // 4. Error & Retry Logic
-    let errorMessage = 'حدث خطأ غير معروف.';
-    let shouldRetry = false;
-
-    switch (err.code) {
-      case 1: // PERMISSION_DENIED
-        errorMessage = 'تم رفض إذن الوصول للموقع.';
-        break;
-      case 2: // POSITION_UNAVAILABLE
-      case 3: // TIMEOUT
-        errorMessage = 'تعذر الحصول على الموقع (ربما GPS مغلق).';
-        shouldRetry = true;
-        break;
+  async function attemptGetLocation() {
+    // 1. Initial Checks & UI Setup
+    if (!navigator.geolocation) {
+      updateStatus('متصفحك لا يدعم تحديد الموقع.');
+      return;
     }
 
-    if (shouldRetry && retriesLeft > 0) {
-      const userWantsRetry = confirm(`${errorMessage} هل قمت بتشغيل GPS؟ اضغط موافق للمحاولة مرة أخرى.`);
-      if (userWantsRetry) {
-        return attemptGetLocation(retriesLeft - 1);
-      }
+    // 1. UI Feedback
+    if (locStatus) {
+    locStatus.textContent = 'جاري تحديد الموقع...';
+    locBtn.disabled = true;
+    const originalBtnText = locBtn.textContent;
+    updateStatus('');
     }
 
-    updateStatus(errorMessage);
-    resetUI();
+    // Helper to reset UI state
+    function resetUI() {
+      locBtn.disabled = false;
+      locBtn.textContent = originalBtnText;
+    }
+
+    // Helper to update status text
+    function updateStatus(msg) {
+      if (locStatus) locStatus.textContent = msg;
+    }
+
+    const options = {
+      enableHighAccuracy: true, // Request GPS-level accuracy
+      timeout: 10000,           // Wait 10 seconds
+      maximumAge: 60000             //use old cache
+    };
+
+    // 2. The Core Request (This triggers the browser's "Allow" popup)
+    navigator.geolocation.getCurrentPosition(
+      // SUCCESS CALLBACK
+      (pos) => {
+        const lat = pos.coords.latitude.toFixed(6);
+        const lng = pos.coords.longitude.toFixed(6);
+        
+        locInput.value = `${lat},${lng}`;
+        if (locStatus) locStatus.textContent = 'تم تحديد الموقع بنجاح';
+        
+        locBtn.disabled = false;
+        locBtn.textContent = 'تحديد موقعي';
+      },
+      // ERROR CALLBACK
+      (err) => {
+        console.error("Geolocation Error:", err);
+        handleLocationError(err);
+        locBtn.disabled = false;
+      },
+      options
+    );
+
+    function handleLocationError(err) {
+      let msg = "";
+      switch (err.code) {
+        case 1: // PERMISSION_DENIED
+            msg = "تم رفض الإذن. يرجى تفعيل الموقع للمتصفح من إعدادات الهاتف.";
+            break;
+        case 2: // POSITION_UNAVAILABLE
+          msg = "إشارة الموقع ضعيفة أو الـ GPS مغلق.";
+          break;
+        case 3: // TIMEOUT
+          msg = "انتهت مهلة الطلب. حاول مرة أخرى في مكان مفتوح.";
+          break;
+        default:
+          msg = "حدث خطأ غير معروف في تحديد الموقع.";
+      }
+      if (locStatus) locStatus.textContent = msg;
+    }
   }
-}
 
   if (locBtn && locInput) {
     locBtn.addEventListener('click', () => attemptGetLocation(1));
