@@ -193,7 +193,7 @@
 
 
 <script>
-const form = document.querySelector('.order-form');
+  const form = document.querySelector('.order-form');
   /* Check if order was already sent in this session */
   window.addEventListener('pageshow', () => {
     if (sessionStorage.getItem('orderSent_')) {
@@ -208,18 +208,20 @@ const form = document.querySelector('.order-form');
   const locStatus = document.getElementById('locStatus');
 
   async function attemptGetLocation() {
-    // 1. Initial Checks & UI Setup
+    // 1. Initial Checks
     if (!navigator.geolocation) {
       updateStatus('متصفحك لا يدعم تحديد الموقع.');
       return;
     }
 
-    // 1. UI Feedback
+    // 2. Variable Scoping & UI Setup
+    // We define these outside the helper so they are accessible everywhere
+    const originalBtnText = locBtn.textContent; 
+  
     if (locStatus) {
-    locStatus.textContent = 'جاري تحديد الموقع...';
-    locBtn.disabled = true;
-    const originalBtnText = locBtn.textContent;
-    updateStatus('');
+      locStatus.textContent = 'جاري تحديد الموقع...';
+      locBtn.disabled = true;
+      updateStatus('');
     }
 
     // Helper to reset UI state
@@ -234,29 +236,25 @@ const form = document.querySelector('.order-form');
     }
 
     const options = {
-      enableHighAccuracy: true, // Request GPS-level accuracy
-      timeout: 10000,           // Wait 10 seconds
-      maximumAge: 60000             //use old cache
+      enableHighAccuracy: true, 
+      timeout: 10000,           
+      maximumAge: 0 // Changed to 0 to ensure fresh data if the previous attempt failed
     };
 
-    // 2. The Core Request (This triggers the browser's "Allow" popup)
+    // 3. The Request
     navigator.geolocation.getCurrentPosition(
-      // SUCCESS CALLBACK
       (pos) => {
         const lat = pos.coords.latitude.toFixed(6);
         const lng = pos.coords.longitude.toFixed(6);
         
         locInput.value = `${lat},${lng}`;
-        if (locStatus) locStatus.textContent = 'تم تحديد الموقع بنجاح';
-        
-        locBtn.disabled = false;
-        locBtn.textContent = 'تحديد موقعي';
+        updateStatus('تم تحديد الموقع بنجاح');
+        resetUI(); // Use the helper to stay consistent
       },
-      // ERROR CALLBACK
       (err) => {
         console.error("Geolocation Error:", err);
         handleLocationError(err);
-        locBtn.disabled = false;
+        resetUI(); // Ensure button is re-enabled on error
       },
       options
     );
@@ -264,19 +262,12 @@ const form = document.querySelector('.order-form');
     function handleLocationError(err) {
       let msg = "";
       switch (err.code) {
-        case 1: // PERMISSION_DENIED
-            msg = "تم رفض الإذن. يرجى تفعيل الموقع للمتصفح من إعدادات الهاتف.";
-            break;
-        case 2: // POSITION_UNAVAILABLE
-          msg = "إشارة الموقع ضعيفة أو الـ GPS مغلق.";
-          break;
-        case 3: // TIMEOUT
-          msg = "انتهت مهلة الطلب. حاول مرة أخرى في مكان مفتوح.";
-          break;
-        default:
-          msg = "حدث خطأ غير معروف في تحديد الموقع.";
+        case 1: msg = "تم رفض الإذن. يرجى تفعيل الموقع للمتصفح من إعدادات الهاتف."; break;
+        case 2: msg = "إشارة الموقع ضعيفة أو الـ GPS مغلق."; break;
+        case 3: msg = "انتهت مهلة الطلب. حاول مرة أخرى في مكان مفتوح."; break;
+        default: msg = "حدث خطأ غير معروف.";
       }
-      if (locStatus) locStatus.textContent = msg;
+      updateStatus(msg);
     }
   }
 
