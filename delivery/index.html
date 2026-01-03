@@ -241,6 +241,9 @@
       maximumAge: 0 // Changed to 0 to ensure fresh data if the previous attempt failed
     };
 
+    console.log('Secure context:', window.isSecureContext);
+    console.log('Triggered by click:', document.activeElement === locBtn);
+
     // 3. The Request
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -267,6 +270,7 @@
         case 3: msg = "انتهت مهلة الطلب. حاول مرة أخرى في مكان مفتوح."; break;
         default: msg = "حدث خطأ غير معروف.";
       }
+      console.log(err.code, err.message);
       updateStatus(msg);
     }
   }
