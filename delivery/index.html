@@ -175,6 +175,15 @@
             <div class="error-msg">المرجو إدخال معلومات عن الطلب</div>
         </div>
 
+        <div class="form-group">
+            <label for="datetime">تاريخ ووقت التوصيل *</label>
+            <input id="datetime"
+                type="datetime-local"
+                name="datetime"
+                required>
+            <div class="error-msg">المرجو تحديد تاريخ ووقت التوصيل</div>
+        </div>
+
         <button type="submit">تأكيد الطلب</button>
         <a id="whatsappBtn" class="whatsapp-btn" href="https://wa.me/212663165488" target="_blank" rel="noopener" aria-label="اتصل عبر واتساب" title="تواصل عبر واتساب">
             <span class="emoji" aria-hidden="true">💬</span>
@@ -193,19 +202,22 @@
 
 
 <script>
-  const form = document.querySelector('.order-form');
-  /* Check if order was already sent in this session */
-  window.addEventListener('pageshow', () => {
-    if (sessionStorage.getItem('orderSent_')) {
-      form.style.display = 'none';
-      document.getElementById('thankYouPage').style.display = 'block';
-    }
-  });
+    const form = document.querySelector('.order-form');
+    /* Check if order was already sent in this session */
+    window.addEventListener('pageshow', () => {
+        if (sessionStorage.getItem('orderSent_')) {
+        form.style.display = 'none';
+        document.getElementById('thankYouPage').style.display = 'block';
+        }
+    });
 
-  // Geolocation: improved handler that waits for permission, prompts to enable GPS, and retries once
-  const locInput = document.getElementById('location');
-  const locBtn = document.getElementById('locBtn');
-  const locStatus = document.getElementById('locStatus');
+    // Geolocation: improved handler that waits for permission, prompts to enable GPS, and retries once
+    const locInput = document.getElementById('location');
+    const locBtn = document.getElementById('locBtn');
+    const locStatus = document.getElementById('locStatus');
+
+    const dt = new Date().toISOString().slice(0,16); // YYYY-MM-DDTHH:MM
+    document.getElementById('datetime').value = dt;
 
   async function attemptGetLocation() {
     // 1. Initial Checks
@@ -289,6 +301,7 @@ form.addEventListener('submit', (e) => {
     isSubmitting = true;
 
     const data = {
+        date: form.datetime.value.trim(),
         name: form.name.value.trim(),
         phone: form.phone.value.trim(),
         address: form.address.value.trim(),
