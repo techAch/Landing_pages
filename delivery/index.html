@@ -153,16 +153,19 @@
             <input id="phone" type="tel" name="phone" placeholder="06XXXXXXXX" required>
             <div class="error-msg">المرجو إدخال رقم هاتف صحيح</div>
         </div>
-
         <div class="form-group">
             <label for="address">العنوان *</label>
             <input id="address" type="text" name="address" placeholder="الحي، الشارع..." required>
             <div class="error-msg">المرجو إدخال العنوان الصحيح</div>
         </div>
+        <div class="form-group">
+            <label>📍 موقع المتجر</label>
+            <input id="pickupInput" type="text" placeholder="حدد موقع المتجر أو الإلتقاط" />
+        </div>
 
         <div class="form-group">
-            <label for="location">الموقع الجغرافي (اختياري)</label>
-            <input id="location" name="location" type="text" placeholder="خط العرض, خط الطول" readonly>
+            <label for="location">📍 موقع التوصيل :Google Maps</label>
+            <input id="location" name="location" type="text" style="text-align: right;" dir="ltr" placeholder="35.73401, -5.85322" readonly>
             <div class="error-msg" id="locStatus" style="display:block; color:#666; font-size:13px; margin-top:5px;"></div>
             <button type="button" id="locBtn" class="loc-btn">تحديد الموقع</button>
         </div>
@@ -170,8 +173,8 @@
         <div class="form-group">
             <label for="note">ملاحظة *</label>
             <textarea id="note" name="note" rows="4" placeholder="تفاصيل التوصيل (مكان الاستلام وتفاصيل الطلبية، وأي ملاحظات إضافية)
-مثال: خذو الطلب كذا وكذا من كافيه طنجة وسلموه فالساعة كذا وكذا
-"></textarea>
+            مثال: خذو الطلب كذا وكذا من كافيه طنجة وسلموه فالساعة كذا وكذا
+            "></textarea>
             <div class="error-msg">المرجو إدخال معلومات عن الطلب</div>
         </div>
 
@@ -182,6 +185,22 @@
                 name="datetime"
                 required>
             <div class="error-msg">المرجو تحديد تاريخ ووقت التوصيل</div>
+        </div>
+
+        <div class="form-group", 
+        style="
+            font-size:16px;
+            margin-bottom:25px;
+            padding:15px;
+            background:#f9f9f9;
+            border:1px solid #ddd;
+            border-radius:6px;
+            text-align:center;
+            ">
+            <label for="price" style="font-weight:bold; margin-bottom:10px; display:block;">ملخص التوصيل</label>
+            <div>📏 Distance: <span id="distanceText">--</span></div>
+            <div>🗺 Zone: <span id="zoneText">--</span></div>
+            <div>💰 Price: <strong><span id="priceText">0</span> MAD</strong></div>
         </div>
 
         <button type="submit">تأكيد الطلب</button>
@@ -199,9 +218,13 @@
         </p>
     </div>
 </div>
-
-
 <script>
+    /* Code for Form price handling based on distance and zone */
+    const DRIVER_START = {lat: 35.73403806303631, lng: -5.853216127230949}; // سوق القرب، المجمع الحسني، طنجة
+    let pickupLocation = null;
+    let clientLocation = null;
+    let lockedPrice = null;
+
     const form = document.querySelector('.order-form');
     /* Check if order was already sent in this session */
     window.addEventListener('pageshow', () => {
@@ -249,7 +272,7 @@
 
     const options = {
       enableHighAccuracy: true, 
-      timeout: 10000,           
+      timeout: 20000,           
       maximumAge: 0 // Changed to 0 to ensure fresh data if the previous attempt failed
     };
 
@@ -263,6 +286,7 @@
         const lng = pos.coords.longitude.toFixed(6);
         
         locInput.value = `${lat},${lng}`;
+        clientLocation = { lat: parseFloat(lat), lng: parseFloat(lng) };
         updateStatus('تم تحديد الموقع بنجاح');
         resetUI(); // Use the helper to stay consistent
       },
@@ -287,65 +311,89 @@
     }
   }
 
-  if (locBtn && locInput) {
-    locBtn.addEventListener('click', () => attemptGetLocation());
-  }
-
-// Form submission handling
-let isSubmitting = false;
-const AppScriptURL = 'https://script.google.com/macros/s/AKfycbxtcYMt18dXPalLYTYUOfSl9JwWygjQTJImSiyF991MrFebQF40TC4_N0LRehxdSRzcaQ/exec'; // غيّرها صاحب القالب إلى رابط سكريبت جوجل الخاص به
-
-
-form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    if (isSubmitting) return;
-    isSubmitting = true;
-
-    const data = {
-        date: form.datetime.value.trim(),
-        name: form.name.value.trim(),
-        phone: form.phone.value.trim(),
-        address: form.address.value.trim(),
-        note: form.note.value.trim()
-    };
-    const submitButton = form.querySelector('button[type="submit"]');
-    submitButton.disabled = true;
-    submitButton.textContent = 'جاري الإرسال...';
-
-    // Build form-encoded data from the actual form (ensures textarea and all fields are included)
-    const formParams = new URLSearchParams();
-    for (const [k, v] of new FormData(form)) {
-        const value = (typeof v === 'string') ? v.trim() : v;
-        formParams.append(k, value);
+    if (locBtn && locInput) {
+        locBtn.addEventListener('click', () => attemptGetLocation());
     }
-    // Debug: show which fields will be sent
-    console.log('Submitting fields:', Array.from(formParams.entries()));
 
-    fetch(AppScriptURL, {
-        method: 'POST',
-        body: formParams // browser will use application/x-www-form-urlencoded
-    })
-    .then(response => {
-        if (response.ok) {
-            form.reset();
-            sessionStorage.setItem('orderSent_', 'true');
-            form.style.display = 'none';
-            document.getElementById('thankYouPage').style.display = 'block';
-        } else {
-            alert('حدث خطأ أثناء إرسال الطلب. يرجى المحاولة لاحقاً.');
+    // Form submission handling
+    let isSubmitting = false;
+    const AppScriptURL = 'https://script.google.com/macros/s/AKfycbxtcYMt18dXPalLYTYUOfSl9JwWygjQTJImSiyF991MrFebQF40TC4_N0LRehxdSRzcaQ/exec'; // غيّرها صاحب القالب إلى رابط سكريبت جوجل الخاص به
+
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (isSubmitting) return;
+        isSubmitting = true;
+
+        const data = {
+            date: form.datetime.value.trim(),
+            name: form.name.value.trim(),
+            phone: form.phone.value.trim(),
+            address: form.address.value.trim(),
+            note: form.note.value.trim()
+        };
+        const submitButton = form.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.textContent = 'جاري الإرسال...';
+
+        // Build form-encoded data from the actual form (ensures textarea and all fields are included)
+        const formParams = new URLSearchParams();
+        for (const [k, v] of new FormData(form)) {
+            const value = (typeof v === 'string') ? v.trim() : v;
+            formParams.append(k, value);
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('حدث خطأ أثناء إرسال الطلب. يرجى المحاولة لاحقاً.');
-    })
-    .finally(() => {
-        // restore submit state
-        isSubmitting = false;
-        submitButton.disabled = false;
-        submitButton.textContent = 'تأكيد الطلب';
+        // Debug: show which fields will be sent
+        console.log('Submitting fields:', Array.from(formParams.entries()));
+
+        fetch(AppScriptURL, {
+            method: 'POST',
+            body: formParams // browser will use application/x-www-form-urlencoded
+        })
+        .then(response => {
+            if (response.ok) {
+                form.reset();
+                sessionStorage.setItem('orderSent_', 'true');
+                form.style.display = 'none';
+                document.getElementById('thankYouPage').style.display = 'block';
+            } else {
+                alert('حدث خطأ أثناء إرسال الطلب. يرجى المحاولة لاحقاً.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء إرسال الطلب. يرجى المحاولة لاحقاً.');
+        })
+        .finally(() => {
+            // restore submit state
+            isSubmitting = false;
+            submitButton.disabled = false;
+            submitButton.textContent = 'تأكيد الطلب';
+        });
     });
-});
+
+    function initPickupAutocomplete() {
+        const input = document.getElementById("pickupInput");
+
+        const autocomplete = new google.maps.places.Autocomplete(input, {
+        fields: ["geometry", "name"],
+        componentRestrictions: { country: "ma" }
+        });
+
+        autocomplete.addListener("place_changed", () => {
+            const place = autocomplete.getPlace();
+            if (!place.geometry) return;
+
+            pickupLocation = {
+                lat: place.geometry.location.lat(),
+                lng: place.geometry.location.lng()
+            };
+        });
+    }
+
+</script>
+
+<script async defer
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA5m12bZjgzdYMlf0no4CM049R0F9SrbKw&libraries=places&callback=initPickupAutocomplete">
 </script>
 </body>
 </html>
