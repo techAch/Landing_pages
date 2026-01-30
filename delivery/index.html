@@ -350,22 +350,30 @@
     }
 
     /* Google Maps Place Autocomplete for Pickup Location and price calculation*/
-    function initPickupAutocomplete() {
+    async function initPickupAutocomplete() {
         const autocomplete = document.getElementById("pickupAutocomplete");
-
-        autocomplete.addEventListener("gmp-placeselect", (event) => {
+        autocomplete.addEventListener("gmp-placeselect", async (event) => {
             const place = event.place;
 
-            if (!place.location) return;
+            // Explicitly fetch geometry
+            await place.fetchFields({
+            fields: ["location", "displayName"]
+            });
+
+            if (!place.location) {
+            alert("Unable to get pickup location");
+            return;
+            }
 
             pickupLocation = {
             lat: place.location.lat(),
             lng: place.location.lng()
             };
 
-            console.log("Pickup selected:", place.displayName);
+            console.log("Pickup OK:", pickupLocation);
         });
     }
+
 
     function detectZone(totalKm) {
         if (totalKm <= 3) return "Nearby zone";
