@@ -17,10 +17,10 @@
             padding: 20px;
         }
         .form-container {
-            background: white;
+            background: rgb(251, 239, 225);
             border-radius: 12px;
             padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(83, 39, 1, 0.3);
             max-width: 500px;
             width: 100%;
         }
@@ -42,9 +42,22 @@
             font-size: 16px;
             transition: border-color 0.3s;
         }
+        gmp-place-autocomplete {
+            width: 100%;
+            background: white !important;
+            color: rgb(0, 0, 0) !important;
+            border: 2px solid #ddd !important;
+            border-radius: 6px !important;
+        }
+        gmp-place-autocomplete::part(input) {
+            background: white !important;
+            color: rgb(0, 0, 0) !important;
+            border: none !important;
+            padding: 0 !important;
+        }
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #ff9500;
         }
         textarea {
             min-height: 100px;
@@ -62,7 +75,7 @@
         button {
             width: 100%;
             padding: 14px;
-            background: #667eea;
+            background: #f39c12;
             color: white;
             border: none;
             border-radius: 6px;
@@ -123,6 +136,21 @@
             cursor: pointer;
         }
         .loc-btn:hover { background: #3a78c6; }
+        .calc-btn {
+            background: #4A90E2;
+            margin-bottom: 15px;
+            display: block;
+            width: 100%;
+            padding: 10px 12px;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 8px;
+            cursor: pointer;
+        }
         .success-msg {
             background: #c8e6c9;
             color: #2e7d32;
@@ -158,14 +186,19 @@
             <input id="address" type="text" name="address" placeholder="الحي، الشارع..." required>
             <div class="error-msg">المرجو إدخال العنوان الصحيح</div>
         </div>
+
         <div class="form-group">
-            <label>📍 موقع المتجر</label>
-            <input id="pickupInput" type="text" placeholder="حدد موقع المتجر أو الإلتقاط" />
+            <label for="pickupInput">📍 حدد نقطة التسليم أو الإستلام </label>
+            <gmp-place-autocomplete
+                id="pickupAutocomplete"
+                country="ma"
+                placeholder=" المرسل إليه، المقهى، المطعم...">
+            </gmp-place-autocomplete>
         </div>
 
         <div class="form-group">
-            <label for="location">📍 موقع التوصيل :Google Maps</label>
-            <input id="location" name="location" type="text" style="text-align: right;" dir="ltr" placeholder="35.73401, -5.85322" readonly>
+            <label for="location">📍 حدد موقعك :Google Maps</label>
+            <input id="location" name="location" type="text" style="text-align: right;" dir="ltr" placeholder="35.73401, -5.85322">
             <div class="error-msg" id="locStatus" style="display:block; color:#666; font-size:13px; margin-top:5px;"></div>
             <button type="button" id="locBtn" class="loc-btn">تحديد الموقع</button>
         </div>
@@ -190,7 +223,7 @@
         <div class="form-group", 
         style="
             font-size:16px;
-            margin-bottom:25px;
+            margin-bottom:4px;
             padding:15px;
             background:#f9f9f9;
             border:1px solid #ddd;
@@ -203,6 +236,7 @@
             <div>💰 Price: <strong><span id="priceText">0</span> MAD</strong></div>
         </div>
 
+        <button type="button" id="calculateFinalPrice" class="calc-btn" onclick="calculatePrice()">حساب ثمن التوصيل</button>
         <button type="submit">تأكيد الطلب</button>
         <a id="whatsappBtn" class="whatsapp-btn" href="https://wa.me/212663165488" target="_blank" rel="noopener" aria-label="اتصل عبر واتساب" title="تواصل عبر واتساب">
             <span class="emoji" aria-hidden="true">💬</span>
@@ -315,7 +349,74 @@
         locBtn.addEventListener('click', () => attemptGetLocation());
     }
 
+    /* Google Maps Place Autocomplete for Pickup Location and price calculation*/
+    function initPickupAutocomplete() {
+        const autocomplete = document.getElementById("pickupAutocomplete");
+
+        autocomplete.addEventListener("gmp-placeselect", (event) => {
+            const place = event.place;
+
+            if (!place.location) return;
+
+            pickupLocation = {
+            lat: place.location.lat(),
+            lng: place.location.lng()
+            };
+
+            console.log("Pickup selected:", place.displayName);
+        });
+    }
+
+    function detectZone(totalKm) {
+        if (totalKm <= 3) return "Nearby zone";
+        if (totalKm <= 6) return "Normal zone";
+        if (totalKm <= 10) return "Outer zone";
+        return "Far zone";
+    }
+
+    function calculateFinalPrice(km) {
+        const price = km * 4;
+        return price < 20 ? 20 : Math.ceil(price);
+    }
+
+    function calculatePrice() {
+        /*if (!pickupLocation || !clientLocation) {
+            alert("Please select pickup and detect your location");
+            return;
+        }*/
+        const service = new google.maps.DistanceMatrixService();
+
+        service.getDistanceMatrix(
+            {
+                origins: [DRIVER_START, pickupLocation],
+                destinations: [pickupLocation, clientLocation],
+                travelMode: google.maps.TravelMode.DRIVING
+            },
+            (response, status) => {
+                if (status !== "OK") {
+                    alert("Distance calculation failed");
+                    return;
+                }
+
+                const d1 = response.rows[0].elements[0].distance.value; // meters
+                const d2 = response.rows[1].elements[1].distance.value;
+
+                const totalKm = (d1 + d2) / 1000;
+
+                const zone = detectZone(totalKm);
+                const price = calculateFinalPrice(totalKm);
+
+                lockedPrice = price;
+
+                document.getElementById("distanceText").innerText =totalKm.toFixed(1) + " km";
+                document.getElementById("zoneText").innerText = zone;
+                document.getElementById("priceText").innerText = price;
+            }
+        );
+}
+
     // Form submission handling
+
     let isSubmitting = false;
     const AppScriptURL = 'https://script.google.com/macros/s/AKfycbxtcYMt18dXPalLYTYUOfSl9JwWygjQTJImSiyF991MrFebQF40TC4_N0LRehxdSRzcaQ/exec'; // غيّرها صاحب القالب إلى رابط سكريبت جوجل الخاص به
 
@@ -370,25 +471,6 @@
             submitButton.textContent = 'تأكيد الطلب';
         });
     });
-
-    function initPickupAutocomplete() {
-        const input = document.getElementById("pickupInput");
-
-        const autocomplete = new google.maps.places.Autocomplete(input, {
-        fields: ["geometry", "name"],
-        componentRestrictions: { country: "ma" }
-        });
-
-        autocomplete.addListener("place_changed", () => {
-            const place = autocomplete.getPlace();
-            if (!place.geometry) return;
-
-            pickupLocation = {
-                lat: place.geometry.location.lat(),
-                lng: place.geometry.location.lng()
-            };
-        });
-    }
 
 </script>
 
