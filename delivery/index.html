@@ -351,43 +351,46 @@
 
     /* Google Maps Place Autocomplete for Pickup Location and price calculation*/
     function initPickupAutocomplete() {
-        console.log("Initializing Pickup Autocomplete");
-        document.addEventListener("DOMContentLoaded", async () => {
-            await customElements.whenDefined("gmp-place-autocomplete");
+        console.log("Google Maps loaded → initPickupAutocomplete");
 
+        customElements.whenDefined("gmp-place-autocomplete").then(() => {
             const autocomplete = document.getElementById("pickupAutocomplete");
 
             if (!autocomplete) {
-            console.error("pickupAutocomplete not found");
-            return;
-            }
-
-            console.log("Autocomplete ready");
-
-            autocomplete.addEventListener("gmp-placeselect", async (event) => {
-            console.log("gmp-placeselect fired");
-
-            const place = event.place;
-
-            await place.fetchFields({
-                fields: ["location", "displayName"]
-            });
-
-            if (!place.location) {
-                console.error("Place has no location");
+                console.error("pickupAutocomplete not found");
                 return;
             }
 
-            pickupLocation = {
-                lat: place.location.lat(),
-                lng: place.location.lng()
-            };
+            console.log("gmp-place-autocomplete ready");
 
-            console.log("Pickup OK:", pickupLocation);
+            autocomplete.addEventListener("gmpx-placechange", async () => {
+                console.log("gmpx-placechange fired");
+
+                const place = autocomplete.place;
+
+                if (!place) {
+                    console.warn("No place object");
+                    return;
+                }
+
+                await place.fetchFields({
+                    fields: ["location", "displayName"]
+                });
+
+                if (!place.location) {
+                    console.error("Place has no location");
+                    return;
+                }
+
+                pickupLocation = {
+                    lat: place.location.lat(),
+                    lng: place.location.lng()
+                };
+
+                console.log("Pickup OK:", pickupLocation);
             });
         });
     }
-
 
     function detectZone(totalKm) {
         if (totalKm <= 3) return "Nearby zone";
@@ -497,7 +500,7 @@
 </script>
 
 <script
-  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA5m12bZjgzdYMlf0no4CM049R0F9SrbKw&libraries=places&callback=initPickupAutocomplete&loading=async">
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA5m12bZjgzdYMlf0no4CM049R0F9SrbKw&libraries=places&callback=initPickupAutocomplete&v=beta&loading=async">
   async
 </script>
 </body>
