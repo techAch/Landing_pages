@@ -351,17 +351,26 @@
 
     /* Google Maps Place Autocomplete for Pickup Location and price calculation*/
     async function initPickupAutocomplete() {
+        await customElements.whenDefined("gmp-place-autocomplete");
+
         const autocomplete = document.getElementById("pickupAutocomplete");
+
+        if (!autocomplete) {
+            console.error("pickupAutocomplete element not found");
+            return;
+        }
+
         autocomplete.addEventListener("gmp-placeselect", async (event) => {
+            console.log("Place select event fired"); // DEBUG
+
             const place = event.place;
 
-            // Explicitly fetch geometry
             await place.fetchFields({
             fields: ["location", "displayName"]
             });
 
             if (!place.location) {
-            alert("Unable to get pickup location");
+            console.error("No location in place object");
             return;
             }
 
@@ -374,6 +383,7 @@
             console.log("Pickup OK:", place.displayName);
         });
     }
+
 
 
     function detectZone(totalKm) {
