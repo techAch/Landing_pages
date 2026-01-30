@@ -351,6 +351,7 @@
 
     /* Google Maps Place Autocomplete for Pickup Location and price calculation*/
     function initPickupAutocomplete() {
+        log("Pickup Autocomplete initialized");
         const pickupAutocomplete = document.getElementById('pickupAutocomplete');
         pickupAutocomplete.addEventListener('gmp-place-changed', (event) => {
             const place = event.detail;
@@ -364,7 +365,7 @@
             }
         });
     }
-    
+
     function detectZone(totalKm) {
         if (totalKm <= 3) return "Nearby zone";
         if (totalKm <= 6) return "Normal zone";
