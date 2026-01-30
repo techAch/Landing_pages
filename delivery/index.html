@@ -350,42 +350,21 @@
     }
 
     /* Google Maps Place Autocomplete for Pickup Location and price calculation*/
-    async function initPickupAutocomplete() {
-        await customElements.whenDefined("gmp-place-autocomplete");
-
-        const autocomplete = document.getElementById("pickupAutocomplete");
-
-        if (!autocomplete) {
-            console.error("pickupAutocomplete element not found");
-            return;
-        }
-
-        autocomplete.addEventListener("gmp-placeselect", async (event) => {
-            console.log("Place select event fired"); // DEBUG
-
-            const place = event.place;
-
-            await place.fetchFields({
-            fields: ["location", "displayName"]
-            });
-
-            if (!place.location) {
-            console.error("No location in place object");
-            return;
+    function initPickupAutocomplete() {
+        const pickupAutocomplete = document.getElementById('pickupAutocomplete');
+        pickupAutocomplete.addEventListener('gmp-place-changed', (event) => {
+            const place = event.detail;
+            if (place && place.geometry) {
+                pickupLocation = {
+                    lat: place.geometry.location.lat(),
+                    lng: place.geometry.location.lng()
+                };
+            } else {
+                pickupLocation = null;
             }
-
-            pickupLocation = {
-            lat: place.location.lat(),
-            lng: place.location.lng()
-            };
-
-            console.log("Pickup OK:", pickupLocation);
-            console.log("Pickup OK:", place.displayName);
         });
     }
-
-
-
+    
     function detectZone(totalKm) {
         if (totalKm <= 3) return "Nearby zone";
         if (totalKm <= 6) return "Normal zone";
@@ -495,8 +474,7 @@
 
 <script
   src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA5m12bZjgzdYMlf0no4CM049R0F9SrbKw&libraries=places&callback=initPickupAutocomplete&loading=async">
-  async 
-  defer
+  async
 </script>
 </body>
 </html>
