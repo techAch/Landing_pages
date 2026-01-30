@@ -351,20 +351,43 @@
 
     /* Google Maps Place Autocomplete for Pickup Location and price calculation*/
     function initPickupAutocomplete() {
-        log("Pickup Autocomplete initialized");
-        const pickupAutocomplete = document.getElementById('pickupAutocomplete');
-        pickupAutocomplete.addEventListener('gmp-place-changed', (event) => {
-            const place = event.detail;
-            if (place && place.geometry) {
-                pickupLocation = {
-                    lat: place.geometry.location.lat(),
-                    lng: place.geometry.location.lng()
-                };
-            } else {
-                pickupLocation = null;
+        console.log("Initializing Pickup Autocomplete");
+        document.addEventListener("DOMContentLoaded", async () => {
+            await customElements.whenDefined("gmp-place-autocomplete");
+
+            const autocomplete = document.getElementById("pickupAutocomplete");
+
+            if (!autocomplete) {
+            console.error("pickupAutocomplete not found");
+            return;
             }
+
+            console.log("Autocomplete ready");
+
+            autocomplete.addEventListener("gmp-placeselect", async (event) => {
+            console.log("gmp-placeselect fired");
+
+            const place = event.place;
+
+            await place.fetchFields({
+                fields: ["location", "displayName"]
+            });
+
+            if (!place.location) {
+                console.error("Place has no location");
+                return;
+            }
+
+            pickupLocation = {
+                lat: place.location.lat(),
+                lng: place.location.lng()
+            };
+
+            console.log("Pickup OK:", pickupLocation);
+            });
         });
     }
+
 
     function detectZone(totalKm) {
         if (totalKm <= 3) return "Nearby zone";
