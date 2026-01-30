@@ -363,8 +363,8 @@
 
             console.log("gmp-place-autocomplete ready");
 
-            autocomplete.addEventListener("gmpx-placechange", async () => {
-                console.log("gmpx-placechange fired");
+            autocomplete.addEventListener("placechange", async () => {
+                console.log("placechange fired");
 
                 const place = autocomplete.place;
 
