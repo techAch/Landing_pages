@@ -363,8 +363,9 @@
 
             console.log("gmp-place-autocomplete ready");
 
-            autocomplete.addEventListener("placechange", async () => {
-                console.log("placechange fired");
+            // Listen for both 'placechange' and 'gmp-placechange' events
+            const handlePlaceChange = async () => {
+                console.log("Place change detected");
 
                 const place = autocomplete.place;
 
@@ -373,9 +374,14 @@
                     return;
                 }
 
-                await place.fetchFields({
-                    fields: ["location", "displayName"]
-                });
+                try {
+                    await place.fetchFields({
+                        fields: ["location", "displayName"]
+                    });
+                } catch (error) {
+                    console.error("Error fetching place fields:", error);
+                    return;
+                }
 
                 if (!place.location) {
                     console.error("Place has no location");
@@ -387,8 +393,12 @@
                     lng: place.location.lng()
                 };
 
-                console.log("Pickup OK:", pickupLocation);
-            });
+                console.log("Pickup location updated:", pickupLocation);
+            };
+
+            // Attach event listeners for multiple event types
+            autocomplete.addEventListener("placechange", handlePlaceChange);
+            autocomplete.addEventListener("gmp-placechange", handlePlaceChange);
         });
     }
 
@@ -500,8 +510,9 @@
 </script>
 
 <script
-  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA5m12bZjgzdYMlf0no4CM049R0F9SrbKw&libraries=places&callback=initPickupAutocomplete&v=beta&loading=async">
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA5m12bZjgzdYMlf0no4CM049R0F9SrbKw&libraries=places,maps&callback=initPickupAutocomplete&v=beta"
   async
+  defer>
 </script>
 </body>
 </html>
