@@ -370,13 +370,6 @@
                     return;
                 }
 
-                const input = el.shadowRoot.querySelector("input");
-                input.addEventListener("input", () => {
-                    if (input.value.length > 4) {
-                        el.searchPlaces();
-                    }
-                });
-
                 //دائرة حول مركز طنجة لتحديد الاقتراحات
                 el.locationBias = {
                 west: -5.95,
@@ -412,11 +405,11 @@
         return price < 20 ? 20 : Math.ceil(price);
     }
 
-    async function calculatePrice() {
+    function calculatePrice() {
         try {
             // Wait for initPickupAutocomplete to finish
-            const pickup = await initPickupAutocomplete();
-            pickupLocation = pickup; // now we have text-only pickupLocation
+            //const pickup = await initPickupAutocomplete();
+            //pickupLocation = pickup; // now we have text-only pickupLocation
             console.log("Pickup location set to:", pickupLocation);
             
             if (!pickupLocation || !clientLocation) {
