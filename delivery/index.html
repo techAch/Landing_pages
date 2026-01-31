@@ -365,15 +365,9 @@
 
             //دائرة حول مركز طنجة لتحديد الاقتراحات
             el.locationBias = {
-                west: -5.95,
-                south: 35.65,
-                east: -5.70,
-                north: 35.85
+                center: { lat: 35.7595, lng: -5.83395 },
+                radius: 8000 // 8 كم
             };
-            el.addEventListener("gmp-place-autocomplete-select", (event) => {
-                pickupLocation = event.detail.place;
-                console.log("Pickup Location selected:", pickupLocation);
-            });
         });
     }
 
