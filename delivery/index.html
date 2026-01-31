@@ -448,11 +448,11 @@
 
     function calculatePrice() {
         try {
-            console.log("Pickup location set to:", pickupLocation);
             // Fallback: get values from input fields if not already set
             if (!pickupLocation) {
                 const pickupEl = document.getElementById("pickupAutocomplete");
                 pickupLocation = pickupEl?.value || pickupEl?.textContent || null;
+                console.log("Pickup Location after fallback:", pickupLocation);
             }
             
             if (!clientLocation) {
@@ -464,44 +464,44 @@
                         clientLocation = { lat, lng };
                     }
                 }
+                console.log("Client Location after fallback:", clientLocation);
             }
-            
-            console.log("Pickup location set to:", pickupLocation);
-            console.log("Client location set to:", clientLocation);
 
             if (!pickupLocation || !clientLocation) {
                 alert("Please select pickup and detect your location");
                 return;
-            }
-            const service = new google.maps.DistanceMatrixService();
+            }else{
+                console.log("Pickup Location:", pickupLocation);
+                console.log("Client Location:", clientLocation);
+                const service = new google.maps.DistanceMatrixService();
+                service.getDistanceMatrix(
+                    {
+                        origins: [DRIVER_START, pickupLocation],
+                        destinations: [pickupLocation, clientLocation],
+                        travelMode: google.maps.TravelMode.DRIVING
+                    },
+                    (response, status) => {
+                        if (status !== "OK") {
+                            alert("Distance calculation failed");
+                            return;
+                        }
 
-            service.getDistanceMatrix(
-                {
-                    origins: [DRIVER_START, pickupLocation],
-                    destinations: [pickupLocation, clientLocation],
-                    travelMode: google.maps.TravelMode.DRIVING
-                },
-                (response, status) => {
-                    if (status !== "OK") {
-                        alert("Distance calculation failed");
-                        return;
+                        const d1 = response.rows[0].elements[0].distance.value; // meters
+                        const d2 = response.rows[1].elements[1].distance.value;
+
+                        const totalKm = (d1 + d2) / 1000;
+
+                        const zone = detectZone(totalKm);
+                        const price = calculateFinalPrice(totalKm);
+
+                        lockedPrice = price;
+
+                        document.getElementById("distanceText").innerText =totalKm.toFixed(1) + " km";
+                        document.getElementById("zoneText").innerText = zone;
+                        document.getElementById("priceText").innerText = price;
                     }
-
-                    const d1 = response.rows[0].elements[0].distance.value; // meters
-                    const d2 = response.rows[1].elements[1].distance.value;
-
-                    const totalKm = (d1 + d2) / 1000;
-
-                    const zone = detectZone(totalKm);
-                    const price = calculateFinalPrice(totalKm);
-
-                    lockedPrice = price;
-
-                    document.getElementById("distanceText").innerText =totalKm.toFixed(1) + " km";
-                    document.getElementById("zoneText").innerText = zone;
-                    document.getElementById("priceText").innerText = price;
+                );
                 }
-            );
         } catch (error) {
             console.error("Error calculating price:", error);
             alert("حدث خطأ أثناء حساب الثمن. يرجى المحاولة لاحقاً.");
