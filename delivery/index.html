@@ -358,67 +358,92 @@
             const el = document.getElementById("pickupAutocomplete");
             if (!el) {
                 console.error("Pickup autocomplete element not found");
-                //reject("Element not found");
                 return;
             }
-            // If user already typed a valid value, use it (optional)
-            if (el.value && el.value.trim() !== "") {
-                pickupLocation = el.value;
-                console.log("Pickup already selected:", pickupLocation);
-                //resolve(pickupLocation);
-                return;
-            }
+            
+            console.log('Element found:', el);
 
             //دائرة حول مركز طنجة لتحديد الاقتراحات
             el.locationBias = {
-            west: -5.95,
-            south: 35.65,
-            east: -5.70,
-            north: 35.85
+                west: -5.95,
+                south: 35.65,
+                east: -5.70,
+                north: 35.85
             };
 
             // Handle place selection: listen only to the component's selection event
             const handlePlaceSelect = async (evt) => {
-                console.log('Place selection triggered');
+                console.log('=== Event fired ===');
+                console.log('Event type:', evt.type);
+                console.log('Event detail:', evt.detail);
+                
                 try {
-                    // Prefer the place object provided by the component event or element
-                    const place = (evt && evt.detail && evt.detail.place) || el.place;
-                    if (!place) {
-                        console.warn('No place object provided by the selection event');
-                        return;
+                    // Try to get place from the component itself
+                    if (el.place) {
+                        console.log('el.place found:', el.place);
+                        const place = el.place;
+                        
+                        // Try location first
+                        if (place.location && typeof place.location.lat === 'function') {
+                            pickupLocation = { lat: place.location.lat(), lng: place.location.lng() };
+                            console.log('✓ Pickup location (from place.location):', pickupLocation);
+                            return;
+                        }
+                        
+                        // Try geometry
+                        if (place.geometry && place.geometry.location && typeof place.geometry.location.lat === 'function') {
+                            pickupLocation = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
+                            console.log('✓ Pickup location (from geometry):', pickupLocation);
+                            return;
+                        }
+                        
+                        // Try string representation
+                        const placeString = place.displayName || place.formatted_address || place.name || el.value;
+                        if (placeString) {
+                            pickupLocation = placeString;
+                            console.log('✓ Pickup location (as string):', pickupLocation);
+                            return;
+                        }
+                    } else {
+                        console.log('el.place is not set, checking el.value:', el.value);
+                        if (el.value && el.value.trim()) {
+                            pickupLocation = el.value;
+                            console.log('✓ Pickup location (from el.value):', pickupLocation);
+                            return;
+                        }
                     }
-
-                    // 1) If place already contains a direct location object, use it
-                    if (place.location && typeof place.location.lat === 'function') {
-                        pickupLocation = { lat: place.location.lat(), lng: place.location.lng() };
-                        console.log('Pickup location (from place.location):', pickupLocation);
-                        return;
-                    }
-
-                    // 2) Fallback to geometry if present on the place object
-                    if (place.geometry && place.geometry.location && typeof place.geometry.location.lat === 'function') {
-                        pickupLocation = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
-                        console.log('Pickup location (from geometry):', pickupLocation);
-                        return;
-                    }
-
-                    // 3) If no coordinates available, pass the place as a string (name, formatted_address, or display name)
-                    const placeString = place.displayName || place.formatted_address || place.name || el.value || (evt && evt.detail && evt.detail.description);
-                    if (placeString) {
-                        pickupLocation = placeString;
-                        console.log('Pickup location (as string):', pickupLocation);
-                        return;
-                    }
-
-                    console.warn('Place selected but no location or name available on the place object');
+                    
+                    console.warn('Could not extract location from place');
                 } catch (err) {
                     console.error('Error processing place selection:', err);
                 }
             };
 
-            // Listen only to the selection event emitted by the web component
+            // Listen to multiple event types to catch all possibilities
+            console.log('Attaching event listeners...');
             el.addEventListener('gmp-place-selected', handlePlaceSelect);
             el.addEventListener('place-selected', handlePlaceSelect);
+            el.addEventListener('placechange', handlePlaceSelect);
+            el.addEventListener('gmp-placechange', handlePlaceSelect);
+            el.addEventListener('change', handlePlaceSelect);
+            
+            // Also check el.place directly on input/blur as fallback
+            el.addEventListener('focusout', () => {
+                console.log('Focusout - checking el.place:', el.place, 'el.value:', el.value);
+                if ((el.place || el.value) && !pickupLocation) {
+                    if (!el.place) {
+                        el.place = { displayName: el.value };
+                    }
+                    handlePlaceSelect({ type: 'manual' });
+                }
+            });
+            
+            console.log('Event listeners attached successfully');
+                console.log('Focusout triggered, el.place:', el.place);
+                if (el.place && !pickupLocation) {
+                    handlePlaceSelect({ detail: { place: el.place } });
+                }
+            });
         })
     }
 
