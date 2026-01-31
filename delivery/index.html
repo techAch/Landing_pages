@@ -387,6 +387,34 @@
             })
     }
 
+    // Call initPickupAutocomplete() when the pickup input loses selection or focus
+    (function setupPickupFocusHandlers(){
+        const pickupEl = document.getElementById('pickupAutocomplete');
+        if (!pickupEl) return;
+
+        const callInit = () => {
+            try {
+                console.log('pickup input lost focus/selection — calling initPickupAutocomplete');
+                initPickupAutocomplete();
+            } catch (err) {
+                console.error('Error calling initPickupAutocomplete on blur:', err);
+            }
+        };
+
+        pickupEl.addEventListener('focusout', callInit);
+        pickupEl.addEventListener('blur', callInit, true);
+        pickupEl.addEventListener('change', callInit);
+
+        // If user clicks outside the element, treat as losing selection
+        document.addEventListener('click', (ev) => {
+            try {
+                if (!pickupEl.contains(ev.target)) callInit();
+            } catch (err) {
+                /* ignore */
+            }
+        });
+    })();
+
 
     function detectZone(totalKm) {
         if (totalKm <= 3) return "Nearby zone";
