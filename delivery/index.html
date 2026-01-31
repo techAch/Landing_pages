@@ -401,42 +401,51 @@
         return price < 20 ? 20 : Math.ceil(price);
     }
 
-    function calculatePrice() {
-        initPickupAutocomplete(); // ensure autocomplete is initialized
-        if (!pickupLocation || !clientLocation) {
-            alert("Please select pickup and detect your location");
-            return;
-        }
-        const service = new google.maps.DistanceMatrixService();
-
-        service.getDistanceMatrix(
-            {
-                origins: [DRIVER_START, pickupLocation],
-                destinations: [pickupLocation, clientLocation],
-                travelMode: google.maps.TravelMode.DRIVING
-            },
-            (response, status) => {
-                if (status !== "OK") {
-                    alert("Distance calculation failed");
-                    return;
-                }
-
-                const d1 = response.rows[0].elements[0].distance.value; // meters
-                const d2 = response.rows[1].elements[1].distance.value;
-
-                const totalKm = (d1 + d2) / 1000;
-
-                const zone = detectZone(totalKm);
-                const price = calculateFinalPrice(totalKm);
-
-                lockedPrice = price;
-
-                document.getElementById("distanceText").innerText =totalKm.toFixed(1) + " km";
-                document.getElementById("zoneText").innerText = zone;
-                document.getElementById("priceText").innerText = price;
+    async function calculatePrice() {
+        try {
+            // Wait for initPickupAutocomplete to finish
+            const pickup = await initPickupAutocomplete();
+            pickupLocation = pickup; // now we have text-only pickupLocation
+            console.log("Pickup location set to:", pickupLocation);
+            
+            if (!pickupLocation || !clientLocation) {
+                alert("Please select pickup and detect your location");
+                return;
             }
-        );
-}
+            const service = new google.maps.DistanceMatrixService();
+
+            service.getDistanceMatrix(
+                {
+                    origins: [DRIVER_START, pickupLocation],
+                    destinations: [pickupLocation, clientLocation],
+                    travelMode: google.maps.TravelMode.DRIVING
+                },
+                (response, status) => {
+                    if (status !== "OK") {
+                        alert("Distance calculation failed");
+                        return;
+                    }
+
+                    const d1 = response.rows[0].elements[0].distance.value; // meters
+                    const d2 = response.rows[1].elements[1].distance.value;
+
+                    const totalKm = (d1 + d2) / 1000;
+
+                    const zone = detectZone(totalKm);
+                    const price = calculateFinalPrice(totalKm);
+
+                    lockedPrice = price;
+
+                    document.getElementById("distanceText").innerText =totalKm.toFixed(1) + " km";
+                    document.getElementById("zoneText").innerText = zone;
+                    document.getElementById("priceText").innerText = price;
+                }
+            );
+        } catch (error) {
+            console.error("Error calculating price:", error);
+            alert("حدث خطأ أثناء حساب الثمن. يرجى المحاولة لاحقاً.");
+        }
+    }
 
     // Form submission handling
 
