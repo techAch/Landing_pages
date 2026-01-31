@@ -370,10 +370,19 @@
                     return;
                 }
 
-                // دائرة حول مركز طنجة 8 كم
+                const input = el.shadowRoot.querySelector("input");
+                input.addEventListener("input", () => {
+                    if (input.value.length > 4) {
+                        el.searchPlaces();
+                    }
+                });
+
+                //دائرة حول مركز طنجة لتحديد الاقتراحات
                 el.locationBias = {
-                    center: { lat: 35.77, lng: -5.82 },
-                    radius: 8000
+                west: -5.95,
+                south: 35.65,
+                east: -5.70,
+                north: 35.85
                 };
 
                 // الحدث الصحيح لنسخ النص المختار
