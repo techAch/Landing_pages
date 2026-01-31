@@ -427,25 +427,20 @@
             el.addEventListener('gmp-placechange', handlePlaceSelect);
             el.addEventListener('change', handlePlaceSelect);
             
-            // Also check el.place directly on input/blur as fallback
-            el.addEventListener('focusout', () => {
-                console.log('Focusout - checking el.place:', el.place, 'el.value:', el.value);
-                if ((el.place || el.value) && !pickupLocation) {
-                    if (!el.place) {
-                        el.place = { displayName: el.value };
+                // Also check el.place directly on input/blur as fallback
+                el.addEventListener('focusout', () => {
+                    console.log('Focusout - checking el.place:', el.place, 'el.value:', el.value);
+                    if ((el.place || el.value) && !pickupLocation) {
+                        if (!el.place) {
+                            el.place = { displayName: el.value };
+                        }
+                        handlePlaceSelect({ type: 'manual' });
                     }
-                    handlePlaceSelect({ type: 'manual' });
-                }
+                });
+                
+                console.log('Event listeners attached successfully');
             });
-            
-            console.log('Event listeners attached successfully');
-                console.log('Focusout triggered, el.place:', el.place);
-                if (el.place && !pickupLocation) {
-                    handlePlaceSelect({ detail: { place: el.place } });
-                }
-            });
-        })
-    }
+        }
 
     function detectZone(totalKm) {
         if (totalKm <= 3) return "Nearby zone";
