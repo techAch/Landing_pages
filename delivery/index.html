@@ -381,23 +381,36 @@
             const handlePlaceSelect = async (evt) => {
                 console.log('Place selection triggered');
                 try {
-                    // Prefer the place object if provided by the component
-                    const place = el.place || (evt && evt.detail && evt.detail.place);
-                    if (place) {
-                        // New API: place.location
-                        if (place.location) {
-                            pickupLocation = { lat: place.location.lat(), lng: place.location.lng() };
-                            console.log('Pickup location (from place.location):', pickupLocation);
-                            return;
-                        }
-                        // Fallback: geometry
-                        if (place.geometry && place.geometry.location) {
-                            pickupLocation = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
-                            console.log('Pickup location (from geometry):', pickupLocation);
-                            return;
-                        }
+                    // Prefer the place object provided by the component event or element
+                    const place = (evt && evt.detail && evt.detail.place) || el.place;
+                    if (!place) {
+                        console.warn('No place object provided by the selection event');
+                        return;
                     }
-                    console.warn('Place selected but no location available on place object');
+
+                    // 1) If place already contains a direct location object, use it
+                    if (place.location && typeof place.location.lat === 'function') {
+                        pickupLocation = { lat: place.location.lat(), lng: place.location.lng() };
+                        console.log('Pickup location (from place.location):', pickupLocation);
+                        return;
+                    }
+
+                    // 2) Fallback to geometry if present on the place object
+                    if (place.geometry && place.geometry.location && typeof place.geometry.location.lat === 'function') {
+                        pickupLocation = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
+                        console.log('Pickup location (from geometry):', pickupLocation);
+                        return;
+                    }
+
+                    // 3) If no coordinates available, pass the place as a string (name, formatted_address, or display name)
+                    const placeString = place.displayName || place.formatted_address || place.name || el.value || (evt && evt.detail && evt.detail.description);
+                    if (placeString) {
+                        pickupLocation = placeString;
+                        console.log('Pickup location (as string):', pickupLocation);
+                        return;
+                    }
+
+                    console.warn('Place selected but no location or name available on the place object');
                 } catch (err) {
                     console.error('Error processing place selection:', err);
                 }
@@ -406,41 +419,6 @@
             // Listen only to the selection event emitted by the web component
             el.addEventListener('gmp-place-selected', handlePlaceSelect);
             el.addEventListener('place-selected', handlePlaceSelect);
-
-            // If user didn't explicitly select an item, auto-select the first suggestion on blur
-            const autoSelectFirstIfNeeded = () => {
-                if (pickupLocation) return;
-                const q = el.value && el.value.trim();
-                if (!q) return;
-                if (!window.google || !google.maps || !google.maps.places) return;
-
-                const ac = new google.maps.places.AutocompleteService();
-                const sw = new google.maps.LatLng(35.65, -5.95);
-                const ne = new google.maps.LatLng(35.85, -5.70);
-                const bounds = new google.maps.LatLngBounds(sw, ne);
-
-                ac.getPlacePredictions({ input: q, bounds, componentRestrictions: { country: 'ma' } }, (preds, status) => {
-                    if (status === google.maps.places.PlacesServiceStatus.OK && preds && preds[0]) {
-                        const first = preds[0];
-                        const ps = new google.maps.places.PlacesService(document.createElement('div'));
-                        ps.getDetails({ placeId: first.place_id, fields: ['geometry','formatted_address','name'] }, (res, stat) => {
-                            if (stat === google.maps.places.PlacesServiceStatus.OK && res && res.geometry && res.geometry.location) {
-                                pickupLocation = { lat: res.geometry.location.lat(), lng: res.geometry.location.lng() };
-                                // update displayed value to the formatted address if available
-                                try { el.value = res.formatted_address || res.name || el.value; } catch(e) {}
-                                console.log('Auto-selected first prediction:', first.description, pickupLocation);
-                            } else {
-                                console.warn('getDetails failed for placeId', first.place_id, stat);
-                            }
-                        });
-                    } else {
-                        console.warn('No predictions to auto-select or status:', status);
-                    }
-                });
-            };
-
-            // Use a short delay on blur to allow actual selection events to fire first
-            el.addEventListener('focusout', () => setTimeout(autoSelectFirstIfNeeded, 150));
         })
     }
 
