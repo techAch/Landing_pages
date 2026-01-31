@@ -351,20 +351,41 @@
 
     /* Google Maps Place Autocomplete for Pickup Location and price calculation*/
     function initPickupAutocomplete() {
-        console.log("Google Maps loaded → initPickupAutocomplete");
+        return new Promise((resolve, reject) => {
+            console.log("Google Maps loaded → initPickupAutocomplete");
+            customElements.whenDefined("gmp-place-autocomplete").then(() => {
+                console.log("gmp-place-autocomplete ready");
 
-        customElements.whenDefined("gmp-place-autocomplete").then(() => {
-            console.log("gmp-place-autocomplete ready");
+                const el = document.getElementById("pickupAutocomplete");
+                if (!el) {
+                    console.error("Pickup autocomplete element not found");
+                    reject("Element not found");
+                    return;
+                }
+                if (el.value) {
+                    console.log("Autocomplete already initialized");
+                    resolve();
+                    return;
+                }
 
-            const el = document.getElementById("pickupAutocomplete");
+                // دائرة حول مركز طنجة 8 كم
+                el.locationBias = {
+                    center: { lat: 35.77, lng: -5.82 },
+                    radius: 8000
+                };
 
-            // الحدث الصحيح لنسخ النص المختار
-            el.addEventListener("placechange", () => {
-                // نأخذ النص كما هو من input داخل gmp-place-autocomplete
-                pickupLocation = el.value; // نص العنوان
-                console.log("Pickup OK (text):", pickupLocation);
+                // الحدث الصحيح لنسخ النص المختار
+                el.addEventListener("placechange", () => {
+                    // نأخذ النص كما هو من input داخل gmp-place-autocomplete
+                    pickupLocation = el.value; // نص العنوان
+                    console.log("Pickup OK (text):", pickupLocation);
+                    resolve(el.value);
+                }, { once: true });
+            }).catch(err => {
+                console.error("Error initializing gmp-place-autocomplete:", err);
+                reject(err);
             });
-        });
+        })
     }
 
 
@@ -381,6 +402,7 @@
     }
 
     function calculatePrice() {
+        initPickupAutocomplete(); // ensure autocomplete is initialized
         if (!pickupLocation || !clientLocation) {
             alert("Please select pickup and detect your location");
             return;
