@@ -362,9 +362,11 @@
                     reject("Element not found");
                     return;
                 }
-                if (el.value) {
-                    console.log("Autocomplete already initialized");
-                    resolve();
+                // If user already typed a valid value, use it (optional)
+                if (el.value && el.value.trim() !== "") {
+                    pickupLocation = el.value;
+                    console.log("Pickup already selected:", pickupLocation);
+                    resolve(pickupLocation);
                     return;
                 }
 
@@ -507,7 +509,7 @@
 </script>
 
 <script
-  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA5m12bZjgzdYMlf0no4CM049R0F9SrbKw&libraries=places,maps&callback=initPickupAutocomplete&v=beta"
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA5m12bZjgzdYMlf0no4CM049R0F9SrbKw&libraries=places,maps&callback=initPickupAutocomplete&v=beta&loading=async"
   async
   defer>
 </script>
