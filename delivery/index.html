@@ -370,66 +370,10 @@
                 east: -5.70,
                 north: 35.85
             };
-
-            // Handle place selection: listen only to the component's selection event
-            const handlePlaceSelect = async (evt) => {
-                console.log('=== Event fired ===');
-                console.log('Event type:', evt.type);
-                console.log('Event detail:', evt.detail);
-                
-                try {
-                    // Try to get place from the component itself
-                    if (el.place) {
-                        console.log('el.place found:', el.place);
-                        const place = el.place;
-                        
-                        // Try location first
-                        if (place.location && typeof place.location.lat === 'function') {
-                            pickupLocation = { lat: place.location.lat(), lng: place.location.lng() };
-                            console.log('✓ Pickup location (from place.location):', pickupLocation);
-                            return;
-                        }
-                        
-                        // Try geometry
-                        if (place.geometry && place.geometry.location && typeof place.geometry.location.lat === 'function') {
-                            pickupLocation = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
-                            console.log('✓ Pickup location (from geometry):', pickupLocation);
-                            return;
-                        }
-                        
-                        // Try string representation
-                        const placeString = place.displayName || place.formatted_address || place.name || el.value;
-                        if (placeString) {
-                            pickupLocation = placeString;
-                            console.log('✓ Pickup location (as string):', pickupLocation);
-                            return;
-                        }
-                    } else {
-                        console.log('el.place is not set, checking el.value:', el.value);
-                        if (el.value && el.value.trim()) {
-                            pickupLocation = el.value;
-                            console.log('✓ Pickup location (from el.value):', pickupLocation);
-                            return;
-                        }
-                    }
-                    
-                    console.warn('Could not extract location from place');
-                } catch (err) {
-                    console.error('Error processing place selection:', err);
-                }
-            };
-            // Also check el.place directly on input/blur as fallback
-            el.addEventListener('focusout', () => {
-                console.log('Focusout - checking el.place:', el.place, 'el.value:', el.value);
-                if ((el.place || el.value) && !pickupLocation) {
-                    if (!el.place) {
-                        el.place = { displayName: el.value };
-                    }
-                    handlePlaceSelect({ type: 'manual' });
-                }
+            el.addEventListener("gmp-place-autocomplete-select", (event) => {
+                pickupLocation = event.detail.place;
+                console.log("Pickup Location selected:", pickupLocation);
             });
-            
-            console.log('Event listeners attached successfully');
         });
     }
 
