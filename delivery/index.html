@@ -391,24 +391,21 @@
 
     function calculatePrice() {
         try {
-            // Fallback: get values from input fields if not already set
-            if (!pickupLocation) {
-                const pickupEl = document.getElementById("pickupAutocomplete");
-                pickupLocation = pickupEl?.value || pickupEl?.textContent || null;
-                console.log("Pickup Location after fallback:", pickupLocation);
-            }
+            // Fallbacks in case locations are not set via autocomplete or geolocation
+            const pickupEl = document.getElementById("pickupAutocomplete");
+            pickupLocation = pickupEl?.value || pickupEl?.textContent || null;
+            console.log("Pickup Location after fallback:", pickupLocation);
             
-            if (!clientLocation) {
-                const locationInput = document.getElementById("location");
-                const locationStr = locationInput?.value?.trim();
-                if (locationStr) {
-                    const [lat, lng] = locationStr.split(',').map(s => parseFloat(s.trim()));
-                    if (!isNaN(lat) && !isNaN(lng)) {
-                        clientLocation = { lat, lng };
-                    }
+            const locationInput = document.getElementById("location");
+            const locationStr = locationInput?.value?.trim();
+            if (locationStr) {
+                const [lat, lng] = locationStr.split(',').map(s => parseFloat(s.trim()));
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    clientLocation = { lat, lng };
                 }
-                console.log("Client Location after fallback:", clientLocation);
             }
+            console.log("Client Location after fallback:", clientLocation);
+        
 
             if (!pickupLocation || !clientLocation) {
                 alert("Please select pickup and detect your location");
