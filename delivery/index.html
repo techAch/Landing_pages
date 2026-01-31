@@ -349,7 +349,10 @@
         locBtn.addEventListener('click', () => attemptGetLocation());
     }
 
-    customElements.whenDefined("gmp-place-autocomplete").then(() => {
+    /* Google Maps Place Autocomplete for Pickup Location and price calculation*/
+    function initPickupAutocomplete() {
+            console.log("Google Maps loaded → initPickupAutocomplete");
+            customElements.whenDefined("gmp-place-autocomplete").then(() => {
                 console.log("gmp-place-autocomplete ready");
 
                 const el = document.getElementById("pickupAutocomplete");
@@ -374,51 +377,70 @@
                 north: 35.85
                 };
 
-                // الحدث الصحيح لنسخ النص المختار
-                el.addEventListener("placechange", () => {
-                    // نأخذ النص كما هو من input داخل gmp-place-autocomplete
-                    pickupLocation = el.value; // نص العنوان
-                    console.log("Pickup OK (text):", pickupLocation);
-                    //resolve(el.value);
-                });
-            })
-    
-
-    /* Google Maps Place Autocomplete for Pickup Location and price calculation*/
-    function initPickupAutocomplete() {
-            console.log("Google Maps loaded → initPickupAutocomplete");
-            customElements.whenDefined("gmp-place-autocomplete").then(() => {
-                console.log("gmp-place-autocomplete ready");
-
-                const el = document.getElementById("pickupAutocomplete");
-                /*if (!el) {
-                    console.error("Pickup autocomplete element not found");
-                    //reject("Element not found");
-                    return;
-                }
-                // If user already typed a valid value, use it (optional)
-                if (el.value && el.value.trim() !== "") {
-                    pickupLocation = el.value;
-                    console.log("Pickup already selected:", pickupLocation);
-                    //resolve(pickupLocation);
-                    return;
-                }*/
-
-                //دائرة حول مركز طنجة لتحديد الاقتراحات
-                el.locationBias = {
-                west: -5.95,
-                south: 35.65,
-                east: -5.70,
-                north: 35.85
+                // Handle place selection: listen only to the component's selection event
+                const handlePlaceSelect = async (evt) => {
+                    console.log('Place selection triggered');
+                    try {
+                        // Prefer the place object if provided by the component
+                        const place = el.place || (evt && evt.detail && evt.detail.place);
+                        if (place) {
+                            // New API: place.location
+                            if (place.location) {
+                                pickupLocation = { lat: place.location.lat(), lng: place.location.lng() };
+                                console.log('Pickup location (from place.location):', pickupLocation);
+                                return;
+                            }
+                            // Fallback: geometry
+                            if (place.geometry && place.geometry.location) {
+                                pickupLocation = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
+                                console.log('Pickup location (from geometry):', pickupLocation);
+                                return;
+                            }
+                        }
+                        console.warn('Place selected but no location available on place object');
+                    } catch (err) {
+                        console.error('Error processing place selection:', err);
+                    }
                 };
 
-                // الحدث الصحيح لنسخ النص المختار
-                el.addEventListener("placechange", () => {
-                    // نأخذ النص كما هو من input داخل gmp-place-autocomplete
-                    pickupLocation = el.value; // نص العنوان
-                    console.log("Pickup OK (text):", pickupLocation);
-                    //resolve(el.value);
-                });
+                // Listen only to the selection event emitted by the web component
+                el.addEventListener('gmp-place-selected', handlePlaceSelect);
+                el.addEventListener('place-selected', handlePlaceSelect);
+
+                // If user didn't explicitly select an item, auto-select the first suggestion on blur
+                const autoSelectFirstIfNeeded = () => {
+                    if (pickupLocation) return;
+                    const q = el.value && el.value.trim();
+                    if (!q) return;
+                    if (!window.google || !google.maps || !google.maps.places) return;
+
+                    const ac = new google.maps.places.AutocompleteService();
+                    const sw = new google.maps.LatLng(35.65, -5.95);
+                    const ne = new google.maps.LatLng(35.85, -5.70);
+                    const bounds = new google.maps.LatLngBounds(sw, ne);
+
+                    ac.getPlacePredictions({ input: q, bounds, componentRestrictions: { country: 'ma' } }, (preds, status) => {
+                        if (status === google.maps.places.PlacesServiceStatus.OK && preds && preds[0]) {
+                            const first = preds[0];
+                            const ps = new google.maps.places.PlacesService(document.createElement('div'));
+                            ps.getDetails({ placeId: first.place_id, fields: ['geometry','formatted_address','name'] }, (res, stat) => {
+                                if (stat === google.maps.places.PlacesServiceStatus.OK && res && res.geometry && res.geometry.location) {
+                                    pickupLocation = { lat: res.geometry.location.lat(), lng: res.geometry.location.lng() };
+                                    // update displayed value to the formatted address if available
+                                    try { el.value = res.formatted_address || res.name || el.value; } catch(e) {}
+                                    console.log('Auto-selected first prediction:', first.description, pickupLocation);
+                                } else {
+                                    console.warn('getDetails failed for placeId', first.place_id, stat);
+                                }
+                            });
+                        } else {
+                            console.warn('No predictions to auto-select or status:', status);
+                        }
+                    });
+                };
+
+                // Use a short delay on blur to allow actual selection events to fire first
+                el.addEventListener('focusout', () => setTimeout(autoSelectFirstIfNeeded, 150));
             })
     }
 
