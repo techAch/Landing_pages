@@ -448,11 +448,27 @@
 
     function calculatePrice() {
         try {
-            // Wait for initPickupAutocomplete to finish
-            //const pickup = await initPickupAutocomplete();
-            //pickupLocation = pickup; // now we have text-only pickupLocation
             console.log("Pickup location set to:", pickupLocation);
+            // Fallback: get values from input fields if not already set
+            if (!pickupLocation) {
+                const pickupEl = document.getElementById("pickupAutocomplete");
+                pickupLocation = pickupEl?.value || pickupEl?.textContent || null;
+            }
             
+            if (!clientLocation) {
+                const locationInput = document.getElementById("location");
+                const locationStr = locationInput?.value?.trim();
+                if (locationStr) {
+                    const [lat, lng] = locationStr.split(',').map(s => parseFloat(s.trim()));
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        clientLocation = { lat, lng };
+                    }
+                }
+            }
+            
+            console.log("Pickup location set to:", pickupLocation);
+            console.log("Client location set to:", clientLocation);
+
             if (!pickupLocation || !clientLocation) {
                 alert("Please select pickup and detect your location");
                 return;
