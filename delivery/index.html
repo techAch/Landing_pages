@@ -354,53 +354,19 @@
         console.log("Google Maps loaded → initPickupAutocomplete");
 
         customElements.whenDefined("gmp-place-autocomplete").then(() => {
-            const autocomplete = document.getElementById("pickupAutocomplete");
-
-            if (!autocomplete) {
-                console.error("pickupAutocomplete not found");
-                return;
-            }
-
             console.log("gmp-place-autocomplete ready");
 
-            // Listen for both 'placechange' and 'gmp-placechange' events
-            const handlePlaceChange = async () => {
-                console.log("Place change detected");
+            const el = document.getElementById("pickupAutocomplete");
 
-                const place = autocomplete.place;
-
-                if (!place) {
-                    console.warn("No place object");
-                    return;
-                }
-
-                try {
-                    await place.fetchFields({
-                        fields: ["location", "displayName"]
-                    });
-                } catch (error) {
-                    console.error("Error fetching place fields:", error);
-                    return;
-                }
-
-                if (!place.location) {
-                    console.error("Place has no location");
-                    return;
-                }
-
-                pickupLocation = {
-                    lat: place.location.lat(),
-                    lng: place.location.lng()
-                };
-
-                console.log("Pickup location updated:", pickupLocation);
-            };
-
-            // Attach event listeners for multiple event types
-            autocomplete.addEventListener("placechange", handlePlaceChange);
-            autocomplete.addEventListener("gmp-placechange", handlePlaceChange);
+            // الحدث الصحيح لنسخ النص المختار
+            el.addEventListener("placechange", () => {
+                // نأخذ النص كما هو من input داخل gmp-place-autocomplete
+                pickupLocation = el.value; // نص العنوان
+                console.log("Pickup OK (text):", pickupLocation);
+            });
         });
     }
+
 
     function detectZone(totalKm) {
         if (totalKm <= 3) return "Nearby zone";
@@ -415,10 +381,10 @@
     }
 
     function calculatePrice() {
-        /*if (!pickupLocation || !clientLocation) {
+        if (!pickupLocation || !clientLocation) {
             alert("Please select pickup and detect your location");
             return;
-        }*/
+        }
         const service = new google.maps.DistanceMatrixService();
 
         service.getDistanceMatrix(
