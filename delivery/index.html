@@ -351,7 +351,6 @@
 
     /* Google Maps Place Autocomplete for Pickup Location and price calculation*/
     function initPickupAutocomplete() {
-        return new Promise((resolve, reject) => {
             console.log("Google Maps loaded → initPickupAutocomplete");
             customElements.whenDefined("gmp-place-autocomplete").then(() => {
                 console.log("gmp-place-autocomplete ready");
@@ -359,14 +358,14 @@
                 const el = document.getElementById("pickupAutocomplete");
                 if (!el) {
                     console.error("Pickup autocomplete element not found");
-                    reject("Element not found");
+                    //reject("Element not found");
                     return;
                 }
                 // If user already typed a valid value, use it (optional)
                 if (el.value && el.value.trim() !== "") {
                     pickupLocation = el.value;
                     console.log("Pickup already selected:", pickupLocation);
-                    resolve(pickupLocation);
+                    //resolve(pickupLocation);
                     return;
                 }
 
@@ -383,13 +382,9 @@
                     // نأخذ النص كما هو من input داخل gmp-place-autocomplete
                     pickupLocation = el.value; // نص العنوان
                     console.log("Pickup OK (text):", pickupLocation);
-                    resolve(el.value);
-                }, { once: true });
-            }).catch(err => {
-                console.error("Error initializing gmp-place-autocomplete:", err);
-                reject(err);
-            });
-        })
+                    //resolve(el.value);
+                });
+            })
     }
 
 
