@@ -360,70 +360,27 @@
                 console.error("Pickup autocomplete element not found");
                 return;
             }
-            
-            console.log('Element found:', el);
 
             //دائرة حول مركز طنجة لتحديد الاقتراحات
             el.locationBias = {
                 center: { lat: 35.7595, lng: -5.83395 },
                 radius: 8000 // 8 كم
             };
-            // Robust place-reading + debug logging
-            function readPlaceAndLog(reason) {
-                try {
-                    const info = { reason: reason || 'trigger' };
 
-                    // Try common property names / API shapes used by place-autocomplete implementations
-                    const place = el.place || el.placeResult || (typeof el.getPlace === 'function' ? el.getPlace() : null) || null;
-                    info.rawValue = el.value || el.textContent || el.innerText || null;
+            el.addEventListener("gmp-place-autocomplete-select", (event) => {
+            console.log("gmp-place-autocomplete-select event:", event);
+            readPlaceAndLog('select-event');
+            });
 
-                    // place id detection
-                    info.placeId = place?.place_id || place?.id || el.getAttribute?.('place-id') || el.getAttribute?.('data-place-id') || null;
-
-                    // location extraction
-                    let location = null;
-                    if (place && place.geometry && place.geometry.location) {
-                        const loc = place.geometry.location;
-                        if (typeof loc.lat === 'function') {
-                            location = { lat: loc.lat(), lng: loc.lng() };
-                        } else if ('lat' in loc && 'lng' in loc) {
-                            location = { lat: loc.lat, lng: loc.lng };
-                        }
-                    }
-
-                    // fallback: try parse coordinates from visible text/value
-                    if (!location && info.rawValue) {
-                        const coords = info.rawValue.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
-                        if (coords) location = { lat: parseFloat(coords[1]), lng: parseFloat(coords[2]) };
-                    }
-
-                    info.location = location;
-
-                    console.log('gmp-place-autocomplete selection:', info, place);
-                    console.log('gmp-place-autocomplete location:', location);
-                    // Update global pickupLocation if we have a valid location
-                    if (location) {
-                        pickupLocation = location
-                    }
-                    return info;
-                } catch (err) {
-                    console.error('Error reading place from gmp-place-autocomplete:', err);
-                    return null;
+            function readPlaceAndLog(source) {
+                const place = el.place;
+                if (place) {
+                    pickupLocation = place.formatted_address || place.name || null;
+                    console.log(`Pickup Location set from ${source}:`, pickupLocation, place);
+                } else {
+                    console.warn(`No place selected from ${source}`);
                 }
             }
-
-            // Listen to several possible events emitted by custom elements / inputs
-            el.addEventListener('change', () => readPlaceAndLog('change'));
-            el.addEventListener('input', () => readPlaceAndLog('input'));
-            el.addEventListener('place_changed', () => readPlaceAndLog('place_changed'));
-            el.addEventListener('gmp-place-select', () => readPlaceAndLog('gmp-place-select'));
-
-            // Also observe mutations (some web components update attributes/text instead of emitting events)
-            const mo = new MutationObserver(() => readPlaceAndLog('mutation'));
-            mo.observe(el, { attributes: true, childList: true, subtree: true });
-
-            // Initial attempt in case a place is already set
-            setTimeout(() => readPlaceAndLog('init'), 300);
         });
     }
 
