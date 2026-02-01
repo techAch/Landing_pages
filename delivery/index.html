@@ -366,21 +366,6 @@
                 center: { lat: 35.7595, lng: -5.83395 },
                 radius: 8000 // 8 كم
             };
-
-            el.addEventListener("gmp-place-autocomplete-select", (event) => {
-            console.log("gmp-place-autocomplete-select event:", event);
-            readPlaceAndLog('select-event');
-            });
-
-            function readPlaceAndLog(source) {
-                const place = el.place;
-                if (place) {
-                    pickupLocation = place.formatted_address || place.name || null;
-                    console.log(`Pickup Location set from ${source}:`, pickupLocation, place);
-                } else {
-                    console.warn(`No place selected from ${source}`);
-                }
-            }
         });
     }
 
