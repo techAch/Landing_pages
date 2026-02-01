@@ -138,7 +138,7 @@
         .loc-btn:hover { background: #3a78c6; }
         .calc-btn {
             background: #4A90E2;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
             display: block;
             width: 100%;
             padding: 10px 12px;
@@ -148,7 +148,7 @@
             font-size: 16px;
             font-weight: bold;
             text-align: center;
-            margin-top: 8px;
+            margin-top: 16px;
             cursor: pointer;
         }
         .success-msg {
@@ -223,20 +223,23 @@
         <div class="form-group", 
         style="
             font-size:16px;
-            margin-bottom:4px;
-            padding:15px;
+            margin-bottom:10px;
+            padding:10px;
             background:#f9f9f9;
             border:1px solid #ddd;
             border-radius:6px;
             text-align:center;
+            direction: rtl;
             ">
-            <label for="price" style="font-weight:bold; margin-bottom:10px; display:block;">ملخص التوصيل</label>
-            <div>📏 Distance: <span id="distanceText">--</span></div>
-            <div>🗺 Zone: <span id="zoneText">--</span></div>
-            <div>💰 Price: <strong><span id="priceText">0</span> MAD</strong></div>
+            <label for="price" style="font-weight:bold; margin-bottom:10px; display:block;"> ملخص التوصيل</label>
+            <div>🛵 مسافة الإنطلاق: <span id="startDistanceText">--</span></div>
+            <div>📏 المسافة: <span id="distanceText">--</span></div>
+            <div>💰 الثمن: <strong><span id="priceText">--</span> MAD</strong></div>
+            <span style="font-size:12px; color:#666;">(الثمن محسوب بحد أدنى 20 درهم)</span>
+            <button type="button" id="calculateFinalPrice" class="calc-btn" onclick="calculatePrice()">حساب ثمن التوصيل</button>
+            <label for="alert" style="font-size:12px; color:#666; display:block;">ملاحظة: المسافة تتضمن مسافة الإنطلاق</label>
         </div>
 
-        <button type="button" id="calculateFinalPrice" class="calc-btn" onclick="calculatePrice()">حساب ثمن التوصيل</button>
         <button type="submit">تأكيد الطلب</button>
         <a id="whatsappBtn" class="whatsapp-btn" href="https://wa.me/212663165488" target="_blank" rel="noopener" aria-label="اتصل عبر واتساب" title="تواصل عبر واتساب">
             <span class="emoji" aria-hidden="true">💬</span>
@@ -369,15 +372,8 @@
         });
     }
 
-    function detectZone(totalKm) {
-        if (totalKm <= 3) return "Nearby zone";
-        if (totalKm <= 6) return "Normal zone";
-        if (totalKm <= 10) return "Outer zone";
-        return "Far zone";
-    }
-
     function calculateFinalPrice(km) {
-        const price = km * 4;
+        const price = km * 3; // 3 دراهم لكل كيلومتر
         return price < 20 ? 20 : Math.ceil(price);
     }
 
@@ -420,14 +416,12 @@
                         const d2 = response.rows[1].elements[1].distance.value;
 
                         const totalKm = (d1 + d2) / 1000;
-
-                        const zone = detectZone(totalKm);
                         const price = calculateFinalPrice(totalKm);
 
                         lockedPrice = price;
 
+                        document.getElementById("startDistanceText").innerText =(d1/1000).toFixed(1) + " km";
                         document.getElementById("distanceText").innerText =totalKm.toFixed(1) + " km";
-                        document.getElementById("zoneText").innerText = zone;
                         document.getElementById("priceText").innerText = price;
                     }
                 );
