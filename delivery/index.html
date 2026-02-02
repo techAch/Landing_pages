@@ -160,14 +160,96 @@
             display: none;
             text-align: center;
         }
+        .lang-switcher-container {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .lang-switcher-container.expanded {
+            display: block;
+        }
+        .lang-switcher-btn {
+            width: auto;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: bold;
+            background: #f39c12;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: block;
+        }
+        .lang-switcher-btn:hover {
+            background: #764ba2;
+        }
+        .lang-switcher-menu {
+            position: absolute;
+            top: 45px;
+            right: 0;
+            list-style: none;
+            background: white;
+            border: 2px solid #f39c12;
+            border-radius: 4px;
+            overflow: hidden;
+            display: none;
+            z-index: 1000;
+            min-width: 60px;
+        }
+        .lang-switcher-container.expanded .lang-switcher-menu {
+            display: block;
+        }
+        .lang-switcher-menu li {
+            margin: 0;
+            padding: 0;
+        }
+        .lang-switcher-menu button {
+            width: 100%;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: bold;
+            background: white;
+            color: #333;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.3s;
+        }
+        .lang-switcher-menu button:hover {
+            background: #f39c12;
+            color: white;
+        }
+        .form-container {
+            position: relative;
+        }
         @media(max-width: 480px) {
             .form-container { padding: 20px; }
             h1 { font-size: 20px; }
+            .lang-switcher-container {
+                top: 10px;
+                right: 10px;
+            }
+            .lang-switcher-btn {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
         }
     </style>
 </head>
 <body>
 <div class="form-container">
+    <div class="lang-switcher-container">
+        <button id="langToggle" class="lang-switcher-btn">AR</button>
+        <ul class="lang-switcher-menu">
+            <li><button data-lang="ar" class="lang-option-btn">العربية (AR)</button></li>
+            <li><button data-lang="fr" class="lang-option-btn">Français (FR)</button></li>
+            <li><button data-lang="en" class="lang-option-btn">English (EN)</button></li>
+        </ul>
+    </div>
     <h1>📋 نموذج الطلب</h1>
     <form class="order-form">
         <div class="form-group">
@@ -188,7 +270,7 @@
         </div>
 
         <div class="form-group">
-            <label for="pickupInput">📍 حدد نقطة التسليم أو الإستلام </label>
+            <label for="pickupAutocomplete">📍 حدد نقطة التسليم أو الإستلام </label>
             <gmp-place-autocomplete
                 id="pickupAutocomplete"
                 country="ma"
@@ -488,6 +570,263 @@
             submitButton.textContent = 'تأكيد الطلب';
         });
     });
+
+    // Language Translation System
+    const translations = {
+        ar: {
+            title: "📋 نموذج الطلب",
+            fullName: "الاسم الكامل *",
+            fullNameError: "المرجو إدخال الاسم الكامل",
+            phone: "رقم الهاتف *",
+            phoneError: "المرجو إدخال رقم هاتف صحيح",
+            phonePlaceholder: "06XXXXXXXX",
+            address: "العنوان *",
+            addressError: "المرجو إدخال العنوان الصحيح",
+            addressPlaceholder: "الحي، الشارع...",
+            pickupLocation: "📍 حدد نقطة التسليم أو الإستلام",
+            pickupPlaceholder: " المرسل إليه، المقهى، المطعم...",
+            userLocation: "📍 حدد موقعك :Google Maps",
+            locationBtn: "تحديد الموقع",
+            note: "ملاحظة *",
+            noteError: "المرجو إدخال معلومات عن الطلب",
+            notePlaceholder: "تفاصيل التوصيل (مكان الاستلام وتفاصيل الطلبية، وأي ملاحظات إضافية)\n            مثال: خذو الطلب كذا وكذا من كافيه طنجة وسلموه فالساعة كذا وكذا",
+            datetime: "تاريخ ووقت التوصيل *",
+            datetimeError: "المرجو تحديد تاريخ ووقت التوصيل",
+            deliverySummary: "🛵 ملخص التوصيل",
+            startDistance: "🏍 مسافة الإنطلاق:",
+            distance: "📏 المسافة:",
+            price: "💰 الثمن:",
+            minPrice: "(الثمن محسوب بحد أدنى 20 درهم)",
+            calculateBtn: "حساب ثمن التوصيل",
+            distanceNote: "ملاحظة: المسافة تتضمن مسافة الإنطلاق",
+            submitBtn: "تأكيد الطلب",
+            whatsappText: "تواصل عبر واتساب",
+            thankYouTitle: "شكراً! ✅",
+            thankYouMessage: "تمّ استلام طلبك بنجاح<br>سنقوم بالتواصل معك قريباً للتأكيد."
+        },
+        fr: {
+            title: "📋 Formulaire de Commande",
+            fullName: "Nom Complet *",
+            fullNameError: "Veuillez entrer votre nom complet",
+            phone: "Numéro de Téléphone *",
+            phoneError: "Veuillez entrer un numéro de téléphone valide",
+            phonePlaceholder: "06XXXXXXXX",
+            address: "Adresse *",
+            addressError: "Veuillez entrer une adresse valide",
+            addressPlaceholder: "Quartier, rue...",
+            pickupLocation: "📍 Sélectionnez un point de livraison ou de retrait",
+            pickupPlaceholder: "Destinataire, café, restaurant...",
+            userLocation: "📍 Définir votre localisation : Google Maps",
+            locationBtn: "Localiser",
+            note: "Remarque *",
+            noteError: "Veuillez entrer les informations de livraison",
+            notePlaceholder: "Détails de la livraison (lieu de retrait, détails de la commande, remarques supplémentaires)\nExemple: Récupérez la commande X et Y du café Tanger et livrez-la à telle heure",
+            datetime: "Date et Heure de Livraison *",
+            datetimeError: "Veuillez sélectionner une date et une heure de livraison",
+            deliverySummary: "🛵 Résumé de la Livraison",
+            startDistance: "🏍 Distance de départ:",
+            distance: "📏 Distance:",
+            price: "💰 Prix:",
+            minPrice: "(Prix calculé avec un minimum de 20 MAD)",
+            calculateBtn: "Calculer le prix de livraison",
+            distanceNote: "Remarque: La distance comprend la distance de départ",
+            submitBtn: "Confirmer la Commande",
+            whatsappText: "Contacter via WhatsApp",
+            thankYouTitle: "Merci ! ✅",
+            thankYouMessage: "Votre commande a été reçue avec succès<br>Nous vous contactera bientôt pour confirmation."
+        },
+        en: {
+            title: "📋 Order Form",
+            fullName: "Full Name *",
+            fullNameError: "Please enter your full name",
+            phone: "Phone Number *",
+            phoneError: "Please enter a valid phone number",
+            phonePlaceholder: "06XXXXXXXX",
+            address: "Address *",
+            addressError: "Please enter a valid address",
+            addressPlaceholder: "District, Street...",
+            pickupLocation: "📍 Select a delivery or pickup point",
+            pickupPlaceholder: "Recipient, café, restaurant...",
+            userLocation: "📍 Set Your Location: Google Maps",
+            locationBtn: "Locate",
+            note: "Note *",
+            noteError: "Please enter delivery information",
+            notePlaceholder: "Delivery details (pickup location, order details, additional notes)\nExample: Pick up order X and Y from Tanger café and deliver at such time",
+            datetime: "Delivery Date and Time *",
+            datetimeError: "Please select a delivery date and time",
+            deliverySummary: "🛵 Delivery Summary",
+            startDistance: "🏍 Start Distance:",
+            distance: "📏 Distance:",
+            price: "💰 Price:",
+            minPrice: "(Price calculated with a minimum of 20 MAD)",
+            calculateBtn: "Calculate Delivery Price",
+            distanceNote: "Note: Distance includes the start distance",
+            submitBtn: "Confirm Order",
+            whatsappText: "Contact via WhatsApp",
+            thankYouTitle: "Thank You! ✅",
+            thankYouMessage: "Your order has been received successfully<br>We will contact you soon for confirmation."
+        }
+    };
+
+    let currentLang = 'ar';
+
+    function setLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem('selectedLang', lang);
+        
+        // Update HTML element lang and dir
+        const html = document.documentElement;
+        html.lang = lang;
+        html.dir = lang === 'ar' ? 'rtl' : 'ltr';
+        
+        // Update form container direction
+        const formContainer = document.querySelector('.form-container');
+        formContainer.style.direction = lang === 'ar' ? 'rtl' : 'ltr';
+        
+        // Update toggle button text
+        document.getElementById('langToggle').textContent = lang.toUpperCase();
+        
+        // Close the dropdown
+        document.querySelector('.lang-switcher-container').classList.remove('expanded');
+        
+        // Update all translations
+        const t = translations[lang];
+        
+        // Title
+        document.querySelector('h1').textContent = t.title;
+        
+        // Update all input labels by scanning the DOM
+        const allLabels = document.querySelectorAll('label');
+        allLabels.forEach(label => {
+            const forAttr = label.getAttribute('for');
+            if (forAttr === 'name') label.textContent = t.fullName;
+            if (forAttr === 'phone') label.textContent = t.phone;
+            if (forAttr === 'address') label.textContent = t.address;
+            if (forAttr === 'pickupAutocomplete') label.textContent = t.pickupLocation;
+            if (forAttr === 'location') label.textContent = t.userLocation;
+            if (forAttr === 'note') label.textContent = t.note;
+            if (forAttr === 'datetime') label.textContent = t.datetime;
+            if (forAttr === 'price') label.textContent = t.deliverySummary;
+            if (forAttr === 'alert') label.textContent = t.distanceNote;
+        });
+        
+        // Update placeholders
+        document.getElementById('phone').placeholder = t.phonePlaceholder;
+        document.getElementById('address').placeholder = t.addressPlaceholder;
+        document.getElementById('note').placeholder = t.notePlaceholder;
+        
+        const pickupAuto = document.getElementById('pickupAutocomplete');
+        if (pickupAuto) pickupAuto.setAttribute('placeholder', t.pickupPlaceholder);
+        
+        // Update error messages
+        const errorMessages = document.querySelectorAll('.error-msg');
+        errorMessages.forEach(msg => {
+            if (msg.textContent.includes('الاسم') || msg.textContent.includes('name') || msg.textContent.includes('nom')) {
+                msg.textContent = t.fullNameError;
+            } else if (msg.textContent.includes('هاتف') || msg.textContent.includes('phone') || msg.textContent.includes('téléphone')) {
+                msg.textContent = t.phoneError;
+            } else if (msg.textContent.includes('عنوان') || msg.textContent.includes('address') || msg.textContent.includes('adresse')) {
+                msg.textContent = t.addressError;
+            } else if (msg.textContent.includes('طلب') || msg.textContent.includes('livraison') || msg.textContent.includes('delivery')) {
+                msg.textContent = t.noteError;
+            } else if (msg.textContent.includes('تاريخ') || msg.textContent.includes('date') || msg.textContent.includes('date')) {
+                msg.textContent = t.datetimeError;
+            }
+        });
+        
+        // Update buttons
+        document.getElementById('locBtn').textContent = t.locationBtn;
+        document.getElementById('calculateFinalPrice').textContent = t.calculateBtn;
+        
+        // Update the summary section divs with proper text
+        const priceSpan = document.getElementById('priceText');
+        if (priceSpan) {
+            const summarySection = priceSpan.closest('.form-group');
+            if (summarySection) {
+                const summaryDivs = summarySection.querySelectorAll('div');
+                
+                summaryDivs.forEach(div => {
+                    // Update start distance
+                    if (div.querySelector('#startDistanceText')) {
+                        const span = div.querySelector('#startDistanceText');
+                        const text = span.textContent;
+                        div.textContent = '';
+                        div.innerHTML = `${t.startDistance} <span id="startDistanceText">${text}</span>`;
+                    }
+                    // Update distance
+                    else if (div.querySelector('#distanceText') && !div.querySelector('#startDistanceText')) {
+                        const span = div.querySelector('#distanceText');
+                        const text = span.textContent;
+                        div.textContent = '';
+                        div.innerHTML = `${t.distance} <span id="distanceText">${text}</span>`;
+                    }
+                    // Update price
+                    else if (div.querySelector('#priceText')) {
+                        const span = div.querySelector('#priceText');
+                        const text = span.textContent;
+                        div.textContent = '';
+                        div.innerHTML = `${t.price} <strong><span id="priceText">${text}</span> MAD</strong>`;
+                    }
+                });
+                
+                // Update min price note - find the span with inline style
+                const minPriceSpans = summarySection.querySelectorAll('span');
+                minPriceSpans.forEach(span => {
+                    if (span.style.fontSize === '12px' && span.id !== 'startDistanceText' && span.id !== 'distanceText' && span.id !== 'priceText') {
+                        span.textContent = t.minPrice;
+                    }
+                });
+            }
+        }
+        
+        // Submit button
+        const submitBtn = document.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.textContent = t.submitBtn;
+        
+        // WhatsApp button
+        const whatsappSpan = document.querySelector('.whatsapp-btn span:last-child');
+        if (whatsappSpan) whatsappSpan.textContent = t.whatsappText;
+        
+        // Thank you page
+        const thankYouPage = document.getElementById('thankYouPage');
+        if (thankYouPage) {
+            const h2 = thankYouPage.querySelector('h2');
+            const p = thankYouPage.querySelector('p');
+            if (h2) h2.textContent = t.thankYouTitle;
+            if (p) p.innerHTML = t.thankYouMessage;
+        }
+    }
+
+    // Language switcher dropdown functionality
+    const langToggle = document.getElementById('langToggle');
+    const langContainer = document.querySelector('.lang-switcher-container');
+    const langOptions = document.querySelectorAll('.lang-option-btn');
+    
+    langToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        langContainer.classList.toggle('expanded');
+    });
+    
+    langOptions.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const lang = btn.getAttribute('data-lang');
+            setLanguage(lang);
+        });
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', () => {
+        langContainer.classList.remove('expanded');
+    });
+
+    // Load saved language or default to Arabic
+    const savedLang = localStorage.getItem('selectedLang') || 'ar';
+    setLanguage(savedLang);
+
+
+
+
 
 </script>
 
