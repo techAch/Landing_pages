@@ -526,11 +526,16 @@
         isSubmitting = true;
 
         const data = {
-            date: form.datetime.value.trim(),
             name: form.name.value.trim(),
             phone: form.phone.value.trim(),
             address: form.address.value.trim(),
-            note: form.note.value.trim()
+            note: form.note.value.trim(),
+            date: form.datetime.value.trim(),
+            pickup: form.pickupAutocomplete.value.trim(),
+            location: form.location.value.trim(),
+            startDistance: document.getElementById("startDistanceText").innerText,
+            distance: document.getElementById("distanceText").innerText,
+            price: lockedPrice !== null ? lockedPrice : 'لم يتم الحساب'
         };
         const submitButton = form.querySelector('button[type="submit"]');
         submitButton.disabled = true;
@@ -823,11 +828,6 @@
     // Load saved language or default to Arabic
     const savedLang = localStorage.getItem('selectedLang') || 'ar';
     setLanguage(savedLang);
-
-
-
-
-
 </script>
 
 <script
