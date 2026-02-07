@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Distance Matrix Test</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        h1 { color: #333; }
+        .input-group { margin: 15px 0; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input { padding: 8px; width: 100%; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 10px 20px; background: #4A90E2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #3a78c6; }
+        .results { margin-top: 30px; background: #f9f9f9; padding: 20px; border-radius: 4px; border-left: 4px solid #4A90E2; }
+        .result-item { margin: 15px 0; padding: 10px; background: white; border-radius: 4px; }
+        .label { font-weight: bold; color: #333; }
+        .value { color: #0a7d3b; font-size: 18px; }
+        .error { color: #e53935; }
+        .loading { color: #666; font-style: italic; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🗺️ Distance Matrix Test</h1>
+    
+    <div class="input-group">
+        <label>Driver Start (Lat, Lng):</label>
+        <input id="driverStart" type="text" value="35.73403, -5.85321" readonly>
+    </div>
+    
+    <div class="input-group">
+        <label>Pickup Location (Lat, Lng):</label>
+        <input id="pickupLoc" type="text" value="35.771657, -5.799383">
+    </div>
+    
+    <div class="input-group">
+        <label>Client Location (Lat, Lng):</label>
+        <input id="clientLoc" type="text" value="35.782656, -5.826150">
+    </div>
+    
+    <button onclick="testDistanceMatrix()">Test Distance Matrix</button>
+    
+    <div id="results" class="results" style="display: none;">
+        <h2>📊 Results</h2>
+        <div id="resultContent"></div>
+    </div>
+</div>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA5m12bZjgzdYMlf0no4CM049R0F9SrbKw&libraries=maps"></script>
+<script>
+function testDistanceMatrix() {
+    const driverStartStr = document.getElementById('driverStart').value;
+    const pickupStr = document.getElementById('pickupLoc').value;
+    const clientStr = document.getElementById('clientLoc').value;
+    
+    // Parse coordinates
+    const [dLat, dLng] = driverStartStr.split(',').map(s => parseFloat(s.trim()));
+    const [pLat, pLng] = pickupStr.split(',').map(s => parseFloat(s.trim()));
+    const [cLat, cLng] = clientStr.split(',').map(s => parseFloat(s.trim()));
+    
+    const DRIVER_START = { lat: dLat, lng: dLng };
+    const pickupLocation = { lat: pLat, lng: pLng };
+    const clientLocation = { lat: cLat, lng: cLng };
+    
+    const resultDiv = document.getElementById('resultContent');
+    resultDiv.innerHTML = '<div class="loading">⏳ Calculating distances...</div>';
+    document.getElementById('results').style.display = 'block';
+    
+    const service = new google.maps.DistanceMatrixService();
+    service.getDistanceMatrix(
+        {
+            origins: [DRIVER_START, pickupLocation],
+            destinations: [pickupLocation, clientLocation],
+            travelMode: google.maps.TravelMode.DRIVING
+        },
+        (response, status) => {
+            if (status !== "OK") {
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${status}</div>`;
+                return;
+            }
+            
+            // Extract distances
+            const d1 = response.rows[0].elements[0].distance.value; // DRIVER_START → pickupLocation
+            const d2 = response.rows[1].elements[1].distance.value; // pickupLocation → clientLocation
+            
+            const d1Km = (d1 / 1000).toFixed(2);
+            const d2Km = (d2 / 1000).toFixed(2);
+            const totalKm = (d1 + d2) / 1000;
+            
+            let html = `
+                <div class="result-item">
+                    <div class="label">🏍 D1 (Driver Start → Pickup):</div>
+                    <div class="value">${d1Km} km (${d1} meters)</div>
+                </div>
+                
+                <div class="result-item">
+                    <div class="label">📏 D2 (Pickup → Client):</div>
+                    <div class="value">${d2Km} km (${d2} meters)</div>
+                </div>
+                
+                <div class="result-item" style="background: #e8f5e9; border-left: 4px solid #4caf50;">
+                    <div class="label">📊 Total Distance:</div>
+                    <div class="value" style="color: #2e7d32; font-size: 22px;">${totalKm.toFixed(2)} km</div>
+                </div>
+                
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 14px; color: #666;">
+                    <strong>Request Details:</strong>
+                    <ul style="margin-top: 10px;">
+                        <li><strong>Origins:</strong> [Driver (${dLat}, ${dLng}), Pickup (${pLat}, ${pLng})]</li>
+                        <li><strong>Destinations:</strong> [Pickup (${pLat}, ${pLng}), Client (${cLat}, ${cLng})]</li>
+                        <li><strong>Travel Mode:</strong> DRIVING</li>
+                    </ul>
+                    <strong style="margin-top: 15px; display: block;">Matrix Structure:</strong>
+                    <ul style="margin-top: 10px; font-family: monospace; background: #fff9c4; padding: 10px; border-radius: 4px;">
+                        <li>rows[0].elements[0] = D1 ✓ (Driver → Pickup)</li>
+                        <li>rows[1].elements[1] = D2 ✓ (Pickup → Client)</li>
+                    </ul>
+                </div>
+            `;
+            
+            resultDiv.innerHTML = html;
+        }
+    );
+}
+
+// Auto-test on load
+window.addEventListener('load', () => {
+    setTimeout(testDistanceMatrix, 1000);
+});
+</script>
+</body>
+</html>

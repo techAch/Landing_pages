@@ -260,7 +260,7 @@
 
         <div class="form-group">
             <label for="phone">رقم الهاتف *</label>
-            <input id="phone" type="tel" name="phone" placeholder="06XXXXXXXX" required>
+            <input id="phone" type="tel" name="phone" style="direction: rtl;" placeholder="06XXXXXXXX" required>
             <div class="error-msg">المرجو إدخال رقم هاتف صحيح</div>
         </div>
         <div class="form-group">
@@ -280,16 +280,14 @@
 
         <div class="form-group">
             <label for="location">📍 حدد موقعك :Google Maps</label>
-            <input id="location" name="location" type="text" style="text-align: right;" dir="ltr" placeholder="35.73401, -5.85322">
+            <input id="location" name="location" type="text" style="text-align: center;" dir="ltr" placeholder="35.73401, -5.85322">
             <div class="error-msg" id="locStatus" style="display:block; color:#666; font-size:13px; margin-top:5px;"></div>
             <button type="button" id="locBtn" class="loc-btn">تحديد الموقع</button>
         </div>
 
         <div class="form-group">
             <label for="note">ملاحظة *</label>
-            <textarea id="note" name="note" rows="4" placeholder="تفاصيل التوصيل (مكان الاستلام وتفاصيل الطلبية، وأي ملاحظات إضافية)
-            مثال: خذو الطلب كذا وكذا من كافيه طنجة وسلموه فالساعة كذا وكذا
-            "></textarea>
+            <textarea id="note" name="note" rows="4" placeholder="تفاصيل التوصيل (مكان الاستلام وتفاصيل الطلبية، وأي ملاحظات إضافية)"></textarea>
             <div class="error-msg">المرجو إدخال معلومات عن الطلب</div>
         </div>
 
@@ -297,7 +295,8 @@
             <label for="datetime">تاريخ ووقت التوصيل *</label>
             <input id="datetime"
                 type="datetime-local"
-                name="datetime"
+                name="datetime",
+                style="text-align: center;"
                 required>
             <div class="error-msg">المرجو تحديد تاريخ ووقت التوصيل</div>
         </div>
@@ -344,7 +343,7 @@
 </div>
 <script>
     /* Code for Form price handling based on distance and zone */
-    const DRIVER_START = {lat: 35.73403806303631, lng: -5.853216127230949}; // سوق القرب، المجمع الحسني، طنجة
+    const DRIVER_START = {lat: 35.73403, lng: -5.85321}; // سوق القرب، المجمع الحسني، طنجة
     let pickupLocation = null;
     let clientLocation = null;
     let lockedPrice = null;

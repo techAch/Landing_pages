@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test gmp-placeselect Event</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; margin-bottom: 20px; }
+        gmp-place-autocomplete {
+            width: 100%;
+            background: white !important;
+            color: rgb(0, 0, 0) !important;
+            border: 2px solid #ddd !important;
+            border-radius: 6px !important;
+            margin-bottom: 20px;
+        }
+        gmp-place-autocomplete::part(input) {
+            background: white !important;
+            color: rgb(0, 0, 0) !important;
+            border: none !important;
+            padding: 0 !important;
+        }
+        .results {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 6px;
+            border-left: 4px solid #4A90E2;
+            margin-top: 20px;
+            display: none;
+        }
+        .results.show { display: block; }
+        .result-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+        }
+        .label { font-weight: bold; color: #333; }
+        .value { color: #0a7d3b; font-size: 16px; font-family: monospace; }
+        .error { color: #e53935; }
+        pre { background: #f0f0f0; padding: 10px; border-radius: 4px; overflow-x: auto; margin-top: 10px; }
+        .status { padding: 10px; margin: 20px 0; border-radius: 4px; text-align: center; }
+        .status.waiting { background: #fff9c4; color: #f57f17; }
+        .status.success { background: #c8e6c9; color: #2e7d32; }
+        .status.error { background: #ffcdd2; color: #c62828; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🧪 Test gmp-placeselect Event</h1>
+    
+    <p style="color: #666; margin-bottom: 20px;">
+        Try selecting a place from the autocomplete below. 
+        Check if geometry/lat/lng are available in the event without fetchFields().
+    </p>
+    
+    <gmp-place-autocomplete
+        id="testPlaceAutocomplete"
+        country="ma"
+        placeholder="Select a place...">
+    </gmp-place-autocomplete>
+    
+    <div class="status waiting">
+        ⏳ Waiting for place selection...
+    </div>
+    
+    <div id="results" class="results">
+        <h2>📊 Place Data Received</h2>
+        <div id="resultContent"></div>
+    </div>
+</div>
+
+<script>
+// Initialize the autocomplete listener
+function initTestAutocomplete() {
+    console.log("Google Maps loaded → initTestAutocomplete");
+    customElements.whenDefined("gmp-place-autocomplete").then(() => {
+        console.log("gmp-place-autocomplete element ready");
+        
+        const el = document.getElementById("testPlaceAutocomplete");
+        if (!el) {
+            console.error("Test autocomplete element not found");
+            return;
+        }
+        
+        // Add location bias
+        el.locationBias = {
+            center: { lat: 35.7595, lng: -5.83395 },
+            radius: 8000
+        };
+        
+        // Listen for place selection
+        el.addEventListener("gmp-placeselect", (e) => {
+            console.log("=== gmp-placeselect Event Fired ===");
+            console.log("Full event object:", e);
+            console.log("e.detail:", e.detail);
+            console.log("e.detail.place:", e.detail.place);
+            
+            const place = e.detail.place;
+            const resultsDiv = document.getElementById('results');
+            const resultContent = document.getElementById('resultContent');
+            const statusDiv = document.querySelector('.status');
+            
+            let html = '<div class="result-item"><div class="label">✓ Place object received</div></div>';
+            let hasGeometry = false;
+            
+            // Check all properties of the place object
+            html += '<div class="result-item">';
+            html += '<div class="label">Place Object Keys:</div>';
+            html += '<div class="value">' + Object.keys(place).join(', ') + '</div>';
+            html += '</div>';
+            
+            // Try to access geometry directly
+            if (place.geometry) {
+                html += '<div class="result-item" style="background: #c8e6c9;">';
+                html += '<div class="label">✓ geometry property exists</div>';
+                html += '<div class="value">' + JSON.stringify(place.geometry, null, 2) + '</div>';
+                html += '</div>';
+                hasGeometry = true;
+                
+                if (place.geometry.location) {
+                    const lat = place.geometry.location.lat();
+                    const lng = place.geometry.location.lng();
+                    html += '<div class="result-item" style="background: #e8f5e9; border-left: 4px solid #4caf50;">';
+                    html += '<div class="label">✓ LAT/LNG EXTRACTED (No fetchFields needed!)</div>';
+                    html += '<div class="value">Lat: ' + lat + '<br>Lng: ' + lng + '</div>';
+                    html += '</div>';
+                    
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = '✓ SUCCESS: Geometry with lat/lng is available directly!';
+                }
+            } else {
+                html += '<div class="result-item" style="background: #ffcdd2;">';
+                html += '<div class="label">✗ No geometry property</div>';
+                html += '</div>';
+                
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '✗ PROBLEM: Geometry not available. fetchFields() would be needed.';
+            }
+            
+            // Check for formatted_address
+            if (place.formatted_address) {
+                html += '<div class="result-item">';
+                html += '<div class="label">Formatted Address:</div>';
+                html += '<div class="value">' + place.formatted_address + '</div>';
+                html += '</div>';
+            }
+            
+            // Log details
+            html += '<div class="result-item" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">';
+            html += '<div class="label">Full Console Log:</div>';
+            html += '<pre>' + JSON.stringify({
+                "place_keys": Object.keys(place),
+                "geometry_exists": !!place.geometry,
+                "geometry": place.geometry ? {
+                    "type": place.geometry.type,
+                    "location_type": place.geometry.location ? typeof place.geometry.location : "undefined"
+                } : null
+            }, null, 2) + '</pre>';
+            html += '</div>';
+            
+            resultContent.innerHTML = html;
+            resultsDiv.classList.add('show');
+        });
+    });
+}
+
+// Wait for Google Maps to load
+window.addEventListener('load', () => {
+    setTimeout(initTestAutocomplete, 1000);
+});
+</script>
+
+<script
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA5m12bZjgzdYMlf0no4CM049R0F9SrbKw&libraries=places&v=beta&loading=async">
+</script>
+</body>
+</html>
