@@ -322,6 +322,11 @@
             <label for="alert" style="font-size:12px; color:#666; display:block;">ملاحظة: المسافة تتضمن مسافة الإنطلاق</label>
         </div>
 
+            <!-- Hidden fields to ensure non-input elements are submitted -->
+            <input type="hidden" name="pickup" id="pickupInput" value="">
+            <input type="hidden" name="startDistance" id="startDistanceInput" value="">
+            <input type="hidden" name="distance" id="distanceInput" value="">
+            <input type="hidden" name="price" id="priceInput" value="">
         <button type="submit">تأكيد الطلب</button>
         <a id="whatsappBtn" class="whatsapp-btn" href="https://wa.me/212663165488" target="_blank" rel="noopener" aria-label="اتصل عبر واتساب" title="تواصل عبر واتساب">
             <span class="emoji" aria-hidden="true">💬</span>
@@ -465,6 +470,9 @@
             const pickupEl = document.getElementById("pickupAutocomplete");
             pickupLocation = pickupEl?.value || pickupEl?.textContent || null;
             console.log("Pickup Location after fallback:", pickupLocation);
+            // keep hidden input in sync
+            const pickupInputEl = document.getElementById('pickupInput');
+            if (pickupInputEl) pickupInputEl.value = pickupLocation || '';
             
             const locationInput = document.getElementById("location");
             const locationStr = locationInput?.value?.trim();
@@ -505,6 +513,14 @@
                         document.getElementById("startDistanceText").innerText =(d1/1000).toFixed(1) + " km";
                         document.getElementById("distanceText").innerText =totalKm.toFixed(1) + " km";
                         document.getElementById("priceText").innerText = price;
+
+                        // populate hidden inputs so they are included in FormData
+                        const sdEl = document.getElementById('startDistanceInput');
+                        const dEl = document.getElementById('distanceInput');
+                        const pEl = document.getElementById('priceInput');
+                        if (sdEl) sdEl.value = (d1/1000).toFixed(3);
+                        if (dEl) dEl.value = totalKm.toFixed(3);
+                        if (pEl) pEl.value = price;
                     }
                 );
                 }
@@ -540,6 +556,19 @@
         const submitButton = form.querySelector('button[type="submit"]');
         submitButton.disabled = true;
         submitButton.textContent = 'جاري الإرسال...';
+
+        // Ensure hidden inputs reflect current calculated values so they are submitted
+        const pickupInputEl = document.getElementById('pickupInput');
+        const startDistanceInputEl = document.getElementById('startDistanceInput');
+        const distanceInputEl = document.getElementById('distanceInput');
+        const priceInputEl = document.getElementById('priceInput');
+        // pickupLocation may be a plain string or object - prefer string
+        if (pickupInputEl) pickupInputEl.value = (typeof pickupLocation === 'string') ? pickupLocation : (pickupLocation?.description || pickupLocation?.name || pickupInputEl.value || '');
+        const sdText = document.getElementById('startDistanceText')?.innerText || '';
+        const dText = document.getElementById('distanceText')?.innerText || '';
+        if (startDistanceInputEl && sdText) startDistanceInputEl.value = sdText.replace(/\s*km\s*/i, '');
+        if (distanceInputEl && dText) distanceInputEl.value = dText.replace(/\s*km\s*/i, '');
+        if (priceInputEl) priceInputEl.value = (lockedPrice !== null) ? lockedPrice : (priceInputEl.value || '');
 
         // Build form-encoded data from the actual form (ensures textarea and all fields are included)
         const formParams = new URLSearchParams();
