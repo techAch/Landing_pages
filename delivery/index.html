@@ -241,6 +241,27 @@
     </style>
 </head>
 <body>
+<script>
+    // Define global callback for Google Maps API BEFORE the API loads
+    window.initPickupAutocomplete = function() {
+        console.log("Google Maps API loaded → initPickupAutocomplete called");
+        customElements.whenDefined("gmp-place-autocomplete").then(() => {
+            console.log("gmp-place-autocomplete ready");
+
+            const el = document.getElementById("pickupAutocomplete");
+            if (!el) {
+                console.error("Pickup autocomplete element not found");
+                return;
+            }
+
+            //دائرة حول مركز طنجة لتحديد الاقتراحات
+            el.locationBias = {
+                center: { lat: 35.7595, lng: -5.83395 },
+                radius: 8000 // 8 كم
+            };
+        });
+    };
+</script>
 <div class="form-container">
     <div class="lang-switcher-container">
         <button id="langToggle" class="lang-switcher-btn">AR</button>
@@ -365,10 +386,23 @@
     const dt = new Date().toISOString().slice(0,16); // YYYY-MM-DDTHH:MM
     document.getElementById('datetime').value = dt;
 
+    // Debug: Check if elements exist
+    console.log('locBtn element:', locBtn);
+    console.log('locInput element:', locInput);
+    console.log('locStatus element:', locStatus);
+
   async function attemptGetLocation() {
     // 1. Initial Checks
     if (!navigator.geolocation) {
       updateStatus('متصفحك لا يدعم تحديد الموقع.');
+      console.error('Geolocation not supported');
+      return;
+    }
+
+    // Check if HTTPS or localhost
+    if (!window.isSecureContext) {
+      updateStatus('⚠️ تحديد الموقع يتطلب HTTPS. الرجاء استخدام رابط آمن.');
+      console.error('Not a secure context - HTTPS required');
       return;
     }
 
@@ -399,8 +433,9 @@
       maximumAge: 0 // Changed to 0 to ensure fresh data if the previous attempt failed
     };
 
-    console.log('Secure context:', window.isSecureContext);
-    console.log('Triggered by click:', document.activeElement === locBtn);
+    console.log('🔍 Geolocation request starting...');
+    console.log('🔒 Secure context:', window.isSecureContext);
+    console.log('🖱️ Triggered by click:', document.activeElement === locBtn);
 
     // 3. The Request
     navigator.geolocation.getCurrentPosition(
@@ -435,29 +470,17 @@
   }
 
     if (locBtn && locInput) {
-        locBtn.addEventListener('click', () => attemptGetLocation());
+        console.log('Attaching click listener to locBtn');
+        locBtn.addEventListener('click', () => {
+            console.log('locBtn clicked!');
+            attemptGetLocation();
+        });
+    } else {
+        console.error('ERROR: locBtn or locInput not found!', {locBtn, locInput});
     }
 
     /* Google Maps Place Autocomplete for Pickup Location and price calculation*/
-    function initPickupAutocomplete() {
-        console.log("Google Maps loaded → initPickupAutocomplete");
-        customElements.whenDefined("gmp-place-autocomplete").then(() => {
-            console.log("gmp-place-autocomplete ready");
-
-            const el = document.getElementById("pickupAutocomplete");
-            if (!el) {
-                console.error("Pickup autocomplete element not found");
-                return;
-            }
-
-            //دائرة حول مركز طنجة لتحديد الاقتراحات
-            el.locationBias = {
-                center: { lat: 35.7595, lng: -5.83395 },
-                radius: 8000 // 8 كم
-            };
-        });
-    }
-.
+    // Function is now defined globally in the <script> tag after </head>
 
     function calculateFinalPrice(km) {
         const price = km * 3.5; // 3.5 دراهم لكل كيلومتر
