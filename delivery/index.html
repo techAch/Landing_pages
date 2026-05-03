@@ -483,7 +483,7 @@
     // Function is now defined globally in the <script> tag after </head>
 
     function calculateFinalPrice(km) {
-        const price = (km * 2) + 10; // 2 دراهم لكل كيلومتر
+        const price = km * 3.3; // 3.3 دراهم لكل كيلومتر
         return price < 20 ? 20 : Math.ceil(price);
     }
 
